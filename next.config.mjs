@@ -26,7 +26,7 @@ const config = {
         hostname: "www.lyrical-nonsense.com",
       },
       {
-        hostname: "googleusercontent.com",
+        hostname: "lh3.googleusercontent.com",
       },
     ],
   },

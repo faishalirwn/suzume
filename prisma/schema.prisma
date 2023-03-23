@@ -55,6 +55,7 @@ model Lyric {
 enum Language {
     EN
     JA
+    JA_RO
 }
 
 // Necessary for Next auth
