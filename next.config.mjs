@@ -20,5 +20,15 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+  images: {
+    remotePatterns: [
+      {
+        hostname: "www.lyrical-nonsense.com",
+      },
+      {
+        hostname: "googleusercontent.com",
+      },
+    ],
+  },
 };
 export default config;
