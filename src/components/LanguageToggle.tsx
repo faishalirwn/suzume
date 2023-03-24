@@ -1,7 +1,7 @@
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
 
 const toggleGroupItemClasses =
-  "hover:bg-gray-300 color-white-300 data-[state=on]:bg-gray-500 data-[state=on]:text-white-400 flex h-[35px] w-[35px] items-center justify-center bg-black text-base leading-4 first:rounded-l last:rounded-r focus:z-10 focus:shadow-[0_0_0_2px] focus:shadow-black focus:outline-none";
+  "hover:bg-[#eee] hover:text-[#939393] text-[#9f9f9f] data-[state=on]:bg-[#e0e0e0] data-[state=on]:text-[#676767] flex h-[35px] w-[50px] items-center justify-center bg-white text-base leading-4 first:rounded-l last:rounded-r font-medium focus:z-10 focus:outline-none";
 
 const LanguageToggle = ({
   langs,
@@ -14,7 +14,7 @@ const LanguageToggle = ({
 }) => {
   return (
     <ToggleGroup.Root
-      className="inline-flex space-x-px rounded bg-black"
+      className="inline-flex space-x-px rounded bg-white"
       type="multiple"
       value={activeLangs}
       onValueChange={(value) => {

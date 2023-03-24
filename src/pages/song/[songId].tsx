@@ -2,10 +2,25 @@ import { type GetStaticProps, type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { type SVGProps, useState } from "react";
 import LanguageToggle from "~/components/LanguageToggle";
 import Layout from "~/components/Layout";
 import { api } from "~/utils/api";
+import { FastAverageColor } from "fast-average-color";
+
+export function IcBaselinePlayArrow(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path fill="currentColor" d="M8 5v14l11-7z"></path>
+    </svg>
+  );
+}
 
 const PlayBar = ({
   activeLangs,
@@ -37,26 +52,32 @@ const PlayBar = ({
     return acc;
   }, [] as string[]);
   return (
-    <div className="fixed bottom-0 left-0 h-[72px] w-full bg-[#212121]">
-      <div className="flex justify-between">
-        <div>
-          <button>play</button>
-        </div>
-        <div className="flex">
-          <Image
-            src={songData.cover}
-            alt={`${songData.title} cover`}
-            width={150}
-            height={150}
-          />
-          <div className="flex flex-col">
-            <h1>{songData.artist.name}</h1>
-            <p>{songData.title}</p>
+    <div className="fixed bottom-0 left-0 flex h-[72px] w-full items-center justify-between bg-[#212121] px-4">
+      <div className="flex items-center gap-4">
+        <button className="h-12 w-12">
+          <IcBaselinePlayArrow className="h-full w-full" />
+        </button>
+        <span className="text-sm text-[#aaa]">0:00 / 4:00</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <Image
+          className="rounded-sm"
+          src={songData.cover}
+          alt={`${songData.title} cover`}
+          width={50}
+          height={50}
+        />
+        <div className="flex flex-col">
+          <h1 className="font-medium leading-[1.2]">{songData.title}</h1>
+          <div className="text-white/70">
+            <span>{songData.artist.name}</span>
+            <span> • </span>
+            <span>{songData.releaseDate.getFullYear()}</span>
           </div>
         </div>
-        <div>
-          <LanguageToggle {...{ langs: langArr, activeLangs, setLangs }} />
-        </div>
+      </div>
+      <div>
+        <LanguageToggle {...{ langs: langArr, activeLangs, setLangs }} />
       </div>
       <p className="hidden">{songData.arranger}</p>
       <p className="hidden">{songData.composer}</p>
@@ -86,15 +107,45 @@ const LyricsComponent = ({ langs }: { langs: string[] }) => {
         </div>
       </div>
     );
+
+  // const getAverageColor = async (imgSrc: string) => {
+  //   const img = document.createElement("img");
+  //   img.crossOrigin = "anonymous";
+  //   img.src = `${imgSrc}?dummy=parameter`;
+  //   const fac = new FastAverageColor();
+  //   try {
+  //     const color = await fac.getColorAsync(img);
+  //     return color.hex;
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
   return (
-    <div className="max-h-[calc(100vh_-_140px)] overflow-y-scroll py-8">
+    <div
+      className={clsx(
+        "h-[calc(100vh_-_140px)] overflow-y-scroll py-8",
+        `bg-[#747777]`
+      )}
+    >
       <div className="flex justify-center">
         {songData.lyrics
-          .filter((lyric, i) => langs.includes(lyric.language))
+          .filter((lyric) => langs.includes(lyric.language))
           .map((lyric, i) => (
-            <div key={i}>
+            <div
+              key={i}
+              className="flex flex-col gap-4 text-4xl font-bold text-black"
+            >
               {lyric.content.split("\n").map((line, j) => (
-                <div key={j}>{line}</div>
+                <div
+                  key={j}
+                  className={clsx("cursor-pointer hover:text-white", {
+                    "text-white/70": j < lyric.content.split(`\n`).length / 2,
+                    "text-white": j === lyric.content.split(`\n`).length / 2,
+                  })}
+                >
+                  {line}
+                </div>
               ))}
             </div>
           ))}
@@ -156,6 +207,7 @@ import { createProxySSGHelpers } from "@trpc/react-query/ssg";
 import { appRouter } from "~/server/api/root";
 import { prisma } from "~/server/db";
 import superjson from "superjson";
+import clsx from "clsx";
 
 export const getStaticProps: GetStaticProps = async (context) => {
   const ssg = createProxySSGHelpers({
