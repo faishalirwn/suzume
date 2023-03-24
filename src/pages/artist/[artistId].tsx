@@ -1,4 +1,5 @@
 import { type NextPage } from "next";
+import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import Layout from "~/components/Layout";
@@ -10,6 +11,9 @@ const Artist: NextPage = () => {
   const artistQuery = api.artist.getById.useQuery(query.artistId);
   return (
     <Layout>
+      <Head>
+        <title>{artistQuery.data?.name}</title>
+      </Head>
       <Image
         src={artistQuery.data?.cover as string}
         alt={`${artistQuery.data?.name as string} cover`}

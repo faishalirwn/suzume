@@ -1,5 +1,6 @@
 import { type Lyric } from "@prisma/client";
 import { type NextPage } from "next";
+import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -19,6 +20,9 @@ const Song: NextPage = () => {
 
   return (
     <Layout>
+      <Head>
+        <title>{songQuery.data?.title}</title>
+      </Head>
       <div className="max-h-[calc(100vh_-_96px)] overflow-y-scroll py-8">
         <div className="flex justify-center">
           {songQuery.data?.lyrics
