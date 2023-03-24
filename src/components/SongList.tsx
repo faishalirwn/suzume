@@ -7,8 +7,14 @@ const SongList = () => {
 
   return (
     <div>
-      <h1>Trending</h1>
-      <div className="flex gap-6 overflow-x-scroll whitespace-nowrap">
+      <h1 className="mb-6 text-4xl font-bold">Trending</h1>
+      <div className="flex items-center gap-6 overflow-x-scroll whitespace-nowrap">
+        {songData?.map((song, i) => (
+          <SongItem {...song} key={i} />
+        ))}
+        {songData?.map((song, i) => (
+          <SongItem {...song} key={i} />
+        ))}
         {songData?.map((song, i) => (
           <SongItem {...song} key={i} />
         ))}
@@ -23,17 +29,20 @@ const SongItem = (props: SongItemProps) => {
   const { id, artist, cover, title } = props;
   console.log(cover);
   return (
-    <div className="flex flex-col">
+    <div className="flex min-w-fit flex-col">
       <Link href={`/song/${id}`}>
         <Image
+          className="mb-2 rounded-lg"
           src={cover}
           alt={`${title} - ${artist.name} Album Cover`}
-          width={150}
-          height={150}
+          width={226}
+          height={226}
         />
-        <h1>{title}</h1>
+        <h1 className="text-lg font-medium">{title}</h1>
       </Link>
-      <Link href={`/artist/${artist.id}`}>{artist.name}</Link>
+      <Link href={`/artist/${artist.id}`} className="text-white/70">
+        {artist.name}
+      </Link>
     </div>
   );
 };

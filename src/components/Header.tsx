@@ -14,8 +14,7 @@ const Header = () => {
     <>
       <nav className="flex items-center justify-between p-5 text-xl font-medium text-white/50">
         <Link
-          className={clsx({
-            navLinkClassNames,
+          className={clsx(navLinkClassNames, {
             "text-white": router.pathname === "/",
           })}
           href="/"
@@ -24,8 +23,7 @@ const Header = () => {
         </Link>
         <div className="flex items-center justify-between gap-12 ">
           <Link
-            className={clsx({
-              navLinkClassNames,
+            className={clsx(navLinkClassNames, {
               "text-white": router.pathname === "/explore",
             })}
             href="/explore"
@@ -33,8 +31,7 @@ const Header = () => {
             Explore
           </Link>
           <Link
-            className={clsx({
-              navLinkClassNames,
+            className={clsx(navLinkClassNames, {
               "text-white": router.pathname === "/library",
             })}
             href="/library"
@@ -42,8 +39,7 @@ const Header = () => {
             Library
           </Link>
           <Link
-            className={clsx({
-              navLinkClassNames,
+            className={clsx(navLinkClassNames, {
               "text-white": router.pathname === "/submit",
             })}
             href="/submit"
@@ -51,8 +47,7 @@ const Header = () => {
             Submit
           </Link>
           <Link
-            className={clsx({
-              navLinkClassNames,
+            className={clsx(navLinkClassNames, {
               "text-white": router.pathname === "/search",
             })}
             href="/"
