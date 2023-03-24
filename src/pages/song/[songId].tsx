@@ -136,8 +136,8 @@ const YoutubeEmbed = () => {
 };
 
 const Song: NextPage<{ id: string }> = ({ id }) => {
-  const [langs, setLangs] = useState(["JA"]);
   const { data: songData } = api.song.getById.useQuery(id);
+  const [langs, setLangs] = useState([songData?.language as string]);
 
   if (!songData) return <div>404</div>;
 
