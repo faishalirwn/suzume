@@ -3,19 +3,27 @@ import Link from "next/link";
 import { api, type RouterOutputs } from "~/utils/api";
 
 const SongList = () => {
-  const { data: songData } = api.song.getAll.useQuery();
+  const { data: songData, isLoading } = api.song.getAll.useQuery();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!songData) {
+    return <div>Something went wrong</div>;
+  }
 
   return (
     <div>
       <h1 className="mb-6 text-4xl font-bold">Trending</h1>
       <div className="flex items-center gap-6 overflow-x-scroll whitespace-nowrap">
-        {songData?.map((song, i) => (
+        {songData.map((song, i) => (
           <SongItem {...song} key={i} />
         ))}
-        {songData?.map((song, i) => (
+        {songData.map((song, i) => (
           <SongItem {...song} key={i} />
         ))}
-        {songData?.map((song, i) => (
+        {songData.map((song, i) => (
           <SongItem {...song} key={i} />
         ))}
       </div>
@@ -27,7 +35,7 @@ type SongItemProps = RouterOutputs["song"]["getAll"][number];
 
 const SongItem = (props: SongItemProps) => {
   const { id, artist, cover, title } = props;
-  console.log(cover);
+
   return (
     <div className="flex min-w-fit flex-col">
       <Link href={`/song/${id}`}>

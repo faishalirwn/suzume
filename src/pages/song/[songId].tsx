@@ -11,9 +11,14 @@ import { api } from "~/utils/api";
 const Song: NextPage = () => {
   const { query } = useRouter();
   const [langs, setLangs] = useState(["JA"]);
-  const songQuery = api.song.getById.useQuery(query.songId as string);
+  const { data: songData, isLoading } = api.song.getById.useQuery(
+    query.songId as string
+  );
 
-  const langArr = songQuery.data?.lyrics?.reduce((acc, lyric) => {
+  if (isLoading) return <div>loading...</div>;
+  if (!songData) return <div>no data</div>;
+
+  const langArr = songData.lyrics.reduce((acc, lyric) => {
     acc.push(lyric.language);
     return acc;
   }, [] as string[]);
@@ -21,12 +26,12 @@ const Song: NextPage = () => {
   return (
     <Layout>
       <Head>
-        <title>{songQuery.data?.title}</title>
+        <title>{songData.title}</title>
       </Head>
       <div className="max-h-[calc(100vh_-_96px)] overflow-y-scroll py-8">
         <div className="flex justify-center">
-          {songQuery.data?.lyrics
-            ?.filter((lyric, i) => langs.includes(lyric.language))
+          {songData.lyrics
+            .filter((lyric, i) => langs.includes(lyric.language))
             .map((lyric, i) => (
               <div key={i}>
                 {lyric.content.split("\n").map((line, j) => (
@@ -39,9 +44,7 @@ const Song: NextPage = () => {
           <iframe
             width="280"
             height="158"
-            src={
-              songQuery.data?.videoLink?.replace("watch?v=", "embed/") as string
-            }
+            src={songData.videoLink?.replace("watch?v=", "embed/")}
             title="YouTube video player"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -55,27 +58,27 @@ const Song: NextPage = () => {
             </div>
             <div className="flex">
               <Image
-                src={songQuery.data?.cover as string}
-                alt={`${songQuery.data?.title as string} cover`}
+                src={songData.cover}
+                alt={`${songData.title} cover`}
                 width={150}
                 height={150}
               />
               <div className="flex flex-col">
-                <h1>{songQuery.data?.artist.name}</h1>
-                <p>{songQuery.data?.title}</p>
+                <h1>{songData.artist.name}</h1>
+                <p>{songData.title}</p>
               </div>
             </div>
             <div>
               <LanguageToggle
-                langs={langArr as string[]}
+                langs={langArr}
                 activeLangs={langs}
                 setLangs={setLangs}
               />
             </div>
           </div>
-          <p className="hidden">{songQuery.data?.arranger}</p>
-          <p className="hidden">{songQuery.data?.composer}</p>
-          <p className="hidden">{songQuery.data?.lyricist}</p>
+          <p className="hidden">{songData.arranger}</p>
+          <p className="hidden">{songData.composer}</p>
+          <p className="hidden">{songData.lyricist}</p>
         </div>
       </div>
     </Layout>
