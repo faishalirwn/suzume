@@ -2,11 +2,18 @@ import { type GetStaticProps, type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { type SVGProps, useState } from "react";
+import {
+  type SVGProps,
+  useState,
+  useRef,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import LanguageToggle from "~/components/LanguageToggle";
 import Layout from "~/components/Layout";
 import { api } from "~/utils/api";
 import * as Slider from "@radix-ui/react-slider";
+import YouTube, { type YouTubePlayer, type YouTubeProps } from "react-youtube";
 
 import { FastAverageColor } from "fast-average-color";
 
@@ -24,14 +31,50 @@ export function IcBaselinePlayArrow(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function IcBaselinePause(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>
+    </svg>
+  );
+}
+
+// const PlayBar = ({
+//   activeLangs,
+//   setLangs,
+//   currentTime,
+//   setCurrentTime,
+//   duration,
+//   setDuration,
+//   isPlaying,
+//   setIsPlaying,
+// }: {
+//   activeLangs: string[];
+//   setLangs: Dispatch<SetStateAction<string[]>>;
+//   currentTime: number;
+//   setCurrentTime: Dispatch<SetStateAction<number>>;
+//   duration: number;
+//   setDuration: Dispatch<SetStateAction<number>>;
+//   isPlaying: number;
+//   setIsPlaying: Dispatch<SetStateAction<boolean>>;
+// }) => {
 const PlayBar = ({
   activeLangs,
   setLangs,
+  player,
 }: {
   activeLangs: string[];
-  setLangs: (value: string[]) => void;
+  setLangs: Dispatch<SetStateAction<string[]>>;
+  player: YouTubePlayer;
 }) => {
   const { query } = useRouter();
+  const [isPlaying, setIsPlaying] = useState(false);
   const { data: songData, isLoading } = api.song.getById.useQuery(
     query.songId as string
   );
@@ -54,6 +97,8 @@ const PlayBar = ({
     return acc;
   }, [] as string[]);
 
+  console.log("player?.getPlayerState()", player?.getPlayerState());
+
   return (
     <div className="fixed bottom-0 left-0 h-[72px] w-full bg-[#212121]">
       <Slider.Root
@@ -72,9 +117,25 @@ const PlayBar = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button className="h-12 w-12">
-              <IcBaselinePlayArrow className="h-full w-full" />
+              {isPlaying ? (
+                <IcBaselinePause
+                  onClick={() => {
+                    player?.pauseVideo();
+                    setIsPlaying(false);
+                  }}
+                  className="h-full w-full"
+                />
+              ) : (
+                <IcBaselinePlayArrow
+                  onClick={() => {
+                    player?.playVideo();
+                    setIsPlaying(true);
+                  }}
+                  className="h-full w-full"
+                />
+              )}
             </button>
-            <span className="text-sm text-[#aaa]">0:00 / 4:00</span>
+            <span className="text-sm text-[#aaa]">{`${player?.getCurrentTime()} / ${player?.getDuration()}`}</span>
           </div>
           <div className="flex items-center gap-3">
             <Image
@@ -173,11 +234,25 @@ const LyricsComponent = ({ langs }: { langs: string[] }) => {
   );
 };
 
-const YoutubeEmbed = () => {
+// const YoutubeEmbed = ({
+//   setCurrentTime,
+//   setDuration,
+//   isPlaying,
+// }: {
+//   setCurrentTime: Dispatch<SetStateAction<number>>;
+//   setDuration: Dispatch<SetStateAction<number>>;
+//   isPlaying: boolean;
+// }) => {
+const YoutubeEmbed = ({
+  setPlayer,
+}: {
+  setPlayer: Dispatch<SetStateAction<YouTubePlayer>>;
+}) => {
   const { query } = useRouter();
   const { data: songData, isLoading } = api.song.getById.useQuery(
     query.songId as string
   );
+
   if (isLoading)
     return (
       <div className="fixed bottom-24 left-0">
@@ -190,9 +265,34 @@ const YoutubeEmbed = () => {
         <p>no data</p>
       </div>
     );
+
+  const onPlayerReady: YouTubeProps["onReady"] = (event) => {
+    // access to player in all event handlers via event.target
+    setPlayer(event.target);
+    // setDuration(event.target.getDuration());
+    // setCurrentTime(event.target.getCurrentTime());
+    // event.target.mute();
+    // if (isPlaying) event.target.playVideo();
+    // console.log("duration", event.target.getDuration());
+    // console.log("CurrentTime", event.target.getCurrentTime());
+  };
+
+  const opts: YouTubeProps["opts"] = {
+    height: "158",
+    width: "280",
+    playerVars: {
+      // https://developers.google.com/youtube/player_parameters
+    },
+  };
+
   return (
     <div className="fixed bottom-24 left-0">
-      <iframe
+      <YouTube
+        videoId={songData.videoLink?.split("=")[1]}
+        opts={opts}
+        onReady={onPlayerReady}
+      />
+      {/* <iframe
         width="280"
         height="158"
         src={songData.videoLink?.replace("watch?v=", "embed/")}
@@ -200,7 +300,7 @@ const YoutubeEmbed = () => {
         frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen
-      ></iframe>
+      ></iframe> */}
     </div>
   );
 };
@@ -208,6 +308,10 @@ const YoutubeEmbed = () => {
 const Song: NextPage<{ id: string }> = ({ id }) => {
   const { data: songData } = api.song.getById.useQuery(id);
   const [langs, setLangs] = useState([songData?.language as string]);
+  const [player, setPlayer] = useState<YouTubePlayer>();
+  // const [currentTime, setCurrentTime] = useState(0);
+  // const [duration, setDuration] = useState(0);
+  // const [isPlaying, setIsPlaying] = useState(false);
 
   if (!songData) return <div>404</div>;
 
@@ -217,8 +321,14 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
         <title>{songData.title}</title>
       </Head>
       <LyricsComponent langs={langs} />
-      <YoutubeEmbed />
-      <PlayBar activeLangs={langs} setLangs={setLangs} />
+      <YoutubeEmbed {...{ setPlayer }} />
+      <PlayBar
+        activeLangs={langs}
+        setLangs={setLangs}
+        {...{
+          player,
+        }}
+      />
     </Layout>
   );
 };
