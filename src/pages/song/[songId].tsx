@@ -6,6 +6,8 @@ import { type SVGProps, useState } from "react";
 import LanguageToggle from "~/components/LanguageToggle";
 import Layout from "~/components/Layout";
 import { api } from "~/utils/api";
+import * as Slider from "@radix-ui/react-slider";
+
 import { FastAverageColor } from "fast-average-color";
 
 export function IcBaselinePlayArrow(props: SVGProps<SVGSVGElement>) {
@@ -51,37 +53,54 @@ const PlayBar = ({
     acc.push(lyric.language);
     return acc;
   }, [] as string[]);
+
   return (
-    <div className="fixed bottom-0 left-0 flex h-[72px] w-full items-center justify-between bg-[#212121] px-4">
-      <div className="flex items-center gap-4">
-        <button className="h-12 w-12">
-          <IcBaselinePlayArrow className="h-full w-full" />
-        </button>
-        <span className="text-sm text-[#aaa]">0:00 / 4:00</span>
-      </div>
-      <div className="flex items-center gap-3">
-        <Image
-          className="rounded-sm"
-          src={songData.cover}
-          alt={`${songData.title} cover`}
-          width={50}
-          height={50}
-        />
-        <div className="flex flex-col">
-          <h1 className="font-medium leading-[1.2]">{songData.title}</h1>
-          <div className="text-white/70">
-            <span>{songData.artist.name}</span>
-            <span> • </span>
-            <span>{songData.releaseDate.getFullYear()}</span>
+    <div className="fixed bottom-0 left-0 h-[72px] w-full bg-[#212121]">
+      <Slider.Root
+        className="relative -mt-2 flex h-5 touch-none select-none items-center"
+        defaultValue={[50]}
+        max={100}
+        step={1}
+        aria-label="Volume"
+      >
+        <Slider.Track className="relative h-[3px] grow rounded-full bg-gray-900">
+          <Slider.Range className="absolute h-full rounded-full bg-white" />
+        </Slider.Track>
+        <Slider.Thumb className="block h-5 w-5 rounded-[10px] bg-white shadow-[0_2px_10px] shadow-gray-700 hover:bg-gray-500 focus:shadow-[0_0_0_5px] focus:shadow-gray-800 focus:outline-none" />
+      </Slider.Root>
+      <div className="px-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button className="h-12 w-12">
+              <IcBaselinePlayArrow className="h-full w-full" />
+            </button>
+            <span className="text-sm text-[#aaa]">0:00 / 4:00</span>
           </div>
+          <div className="flex items-center gap-3">
+            <Image
+              className="rounded-sm"
+              src={songData.cover}
+              alt={`${songData.title} cover`}
+              width={50}
+              height={50}
+            />
+            <div className="flex flex-col">
+              <h1 className="font-medium leading-[1.2]">{songData.title}</h1>
+              <div className="text-white/70">
+                <span>{songData.artist.name}</span>
+                <span> • </span>
+                <span>{songData.releaseDate.getFullYear()}</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <LanguageToggle {...{ langs: langArr, activeLangs, setLangs }} />
+          </div>
+          <p className="hidden">{songData.arranger}</p>
+          <p className="hidden">{songData.composer}</p>
+          <p className="hidden">{songData.lyricist}</p>
         </div>
       </div>
-      <div>
-        <LanguageToggle {...{ langs: langArr, activeLangs, setLangs }} />
-      </div>
-      <p className="hidden">{songData.arranger}</p>
-      <p className="hidden">{songData.composer}</p>
-      <p className="hidden">{songData.lyricist}</p>
     </div>
   );
 };
