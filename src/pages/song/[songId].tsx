@@ -1,5 +1,4 @@
-import { type Lyric } from "@prisma/client";
-import { type NextPage } from "next";
+import { type GetStaticProps, type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -112,13 +111,13 @@ const YoutubeEmbed = () => {
   if (isLoading)
     return (
       <div className="fixed bottom-24 left-0">
-        <p>loading...</p>{" "}
+        <p>loading...</p>
       </div>
     );
   if (!songData)
     return (
       <div className="fixed bottom-24 left-0">
-        <p>no data</p>{" "}
+        <p>no data</p>
       </div>
     );
   return (
@@ -136,21 +135,59 @@ const YoutubeEmbed = () => {
   );
 };
 
-const Song: NextPage = () => {
+const Song: NextPage<{ id: string }> = ({ id }) => {
   const [langs, setLangs] = useState(["JA"]);
-  const { query } = useRouter();
-  const { data: songData } = api.song.getById.useQuery(query.songId as string);
+  const { data: songData } = api.song.getById.useQuery(id);
+
+  if (!songData) return <div>404</div>;
 
   return (
     <Layout>
       <Head>
-        <title>{songData?.title}</title>
+        <title>{songData.title}</title>
       </Head>
       <LyricsComponent langs={langs} />
       <YoutubeEmbed />
       <PlayBar activeLangs={langs} setLangs={setLangs} />
     </Layout>
   );
+};
+import { createProxySSGHelpers } from "@trpc/react-query/ssg";
+import { appRouter } from "~/server/api/root";
+import { prisma } from "~/server/db";
+import superjson from "superjson";
+
+export const getStaticProps: GetStaticProps = async (context) => {
+  const ssg = createProxySSGHelpers({
+    router: appRouter,
+    ctx: {
+      prisma: prisma,
+      session: null,
+    },
+    transformer: superjson,
+  });
+
+  const id = context.params?.songId;
+  console.log("context.params", context.params);
+  console.log("id", id);
+
+  if (typeof id !== "string") throw new Error("invalid id");
+
+  await ssg.song.getById.prefetch(id);
+
+  return {
+    props: {
+      trpcState: ssg.dehydrate(),
+      id,
+    },
+  };
+};
+
+export const getStaticPaths = () => {
+  return {
+    paths: [],
+    fallback: "blocking",
+  };
 };
 
 export default Song;
