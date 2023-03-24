@@ -44,18 +44,57 @@ export function IcBaselinePause(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IcBaselineVideocamOff(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path
+        fill="currentColor"
+        d="m21 6.5l-4 4V7c0-.55-.45-1-1-1H9.82L21 17.18V6.5zM3.27 2L2 3.27L4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21L21 19.73L3.27 2z"
+      ></path>
+    </svg>
+  );
+}
+
+export function IcOutlineVideocamOff(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path
+        fill="currentColor"
+        d="m9.56 8l-2-2l-4.15-4.14L2 3.27L4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.55-.18L19.73 21l1.41-1.41l-8.86-8.86L9.56 8zM5 16V8h1.73l8 8H5zm10-8v2.61l6 6V6.5l-4 4V7c0-.55-.45-1-1-1h-5.61l2 2H15z"
+      ></path>
+    </svg>
+  );
+}
+
 const PlayBar = ({
   activeLangs,
   setLangs,
   player,
   currentTime,
   playerState,
+  playerHidden,
+  setPlayerHidden,
 }: {
   activeLangs: string[];
   setLangs: Dispatch<SetStateAction<string[]>>;
   player: YouTubePlayer;
   currentTime: number;
   playerState: number;
+  playerHidden: boolean;
+  setPlayerHidden: Dispatch<SetStateAction<boolean>>;
 }) => {
   const { query } = useRouter();
   const [isPlaying, setIsPlaying] = useState(false);
@@ -95,7 +134,7 @@ const PlayBar = ({
   return (
     <div className="fixed bottom-0 left-0 h-[72px] w-full bg-[#212121]">
       <Slider.Root
-        className="relative -mt-2 flex h-5 touch-none select-none items-center"
+        className="relative -mt-3 flex h-5 cursor-pointer touch-none select-none items-center"
         value={[currentTime]}
         onValueChange={(value) => {
           player?.seekTo(value[0]);
@@ -104,12 +143,12 @@ const PlayBar = ({
         step={1}
         aria-label="Progress bar"
       >
-        <Slider.Track className="relative h-[3px] grow rounded-full bg-gray-900">
-          <Slider.Range className="absolute h-full rounded-full bg-white" />
+        <Slider.Track className="relative h-[3px] grow rounded-full bg-white bg-opacity-10">
+          <Slider.Range className="absolute h-full rounded-full bg-[#f00]" />
         </Slider.Track>
-        <Slider.Thumb className="block h-5 w-5 rounded-[10px] bg-white shadow-[0_2px_10px] shadow-gray-700 hover:bg-gray-500 focus:shadow-[0_0_0_5px] focus:shadow-gray-800 focus:outline-none" />
+        <Slider.Thumb className="block h-3 w-3 rounded-[10px] bg-[#f00] shadow-[0_2px_10px] shadow-gray-700 focus:outline-none" />
       </Slider.Root>
-      <div className="px-4">
+      <div className="mt- px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button className="h-12 w-12">
@@ -152,7 +191,24 @@ const PlayBar = ({
               </div>
             </div>
           </div>
-          <div>
+          <div className="flex gap-6">
+            <button>
+              {playerHidden ? (
+                <IcBaselineVideocamOff
+                  className="h-6 w-6"
+                  onClick={() => {
+                    setPlayerHidden(false);
+                  }}
+                />
+              ) : (
+                <IcOutlineVideocamOff
+                  className="h-6 w-6"
+                  onClick={() => {
+                    setPlayerHidden(true);
+                  }}
+                />
+              )}
+            </button>
             <LanguageToggle {...{ langs: langArr, activeLangs, setLangs }} />
           </div>
           <p className="hidden">{songData.arranger}</p>
@@ -236,10 +292,12 @@ const YoutubeEmbed = ({
   setPlayer,
   setCurrentTime,
   setPlayerState,
+  playerHidden,
 }: {
   setPlayer: Dispatch<SetStateAction<YouTubePlayer>>;
   setCurrentTime: Dispatch<SetStateAction<number>>;
   setPlayerState: Dispatch<SetStateAction<number>>;
+  playerHidden: boolean;
 }) => {
   const { query } = useRouter();
 
@@ -283,6 +341,9 @@ const YoutubeEmbed = ({
   return (
     <div className="fixed bottom-24 left-0">
       <YouTube
+        className={clsx({
+          hidden: playerHidden,
+        })}
         videoId={songData.videoLink?.split("=")[1]}
         opts={opts}
         onReady={onPlayerReady}
@@ -297,6 +358,7 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
   const [player, setPlayer] = useState<YouTubePlayer>();
   const [currentTime, setCurrentTime] = useState(0);
   const [playerState, setPlayerState] = useState(-1);
+  const [playerHidden, setPlayerHidden] = useState(false);
 
   if (!songData) return <div>404</div>;
 
@@ -306,7 +368,9 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
         <title>{songData.title}</title>
       </Head>
       <LyricsComponent langs={langs} />
-      <YoutubeEmbed {...{ setPlayer, setCurrentTime, setPlayerState }} />
+      <YoutubeEmbed
+        {...{ setPlayer, setCurrentTime, setPlayerState, playerHidden }}
+      />
       <PlayBar
         activeLangs={langs}
         setLangs={setLangs}
@@ -314,6 +378,8 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
           player,
           currentTime,
           playerState,
+          playerHidden,
+          setPlayerHidden,
         }}
       />
     </Layout>
@@ -336,8 +402,6 @@ export const getStaticProps: GetStaticProps = async (context) => {
   });
 
   const id = context.params?.songId;
-  console.log("context.params", context.params);
-  console.log("id", id);
 
   if (typeof id !== "string") throw new Error("invalid id");
 
