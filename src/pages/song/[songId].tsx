@@ -3,11 +3,10 @@ import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import {
-  type SVGProps,
+  useRef,
   useState,
   type Dispatch,
   type SetStateAction,
-  useRef,
 } from "react";
 import LanguageToggle from "~/components/LanguageToggle";
 import Layout from "~/components/Layout";
@@ -16,68 +15,6 @@ import * as Slider from "@radix-ui/react-slider";
 import YouTube, { type YouTubePlayer, type YouTubeProps } from "react-youtube";
 
 import { FastAverageColor } from "fast-average-color";
-
-export function IcBaselinePlayArrow(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="1em"
-      height="1em"
-      viewBox="0 0 24 24"
-      {...props}
-    >
-      <path fill="currentColor" d="M8 5v14l11-7z"></path>
-    </svg>
-  );
-}
-
-export function IcBaselinePause(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="1em"
-      height="1em"
-      viewBox="0 0 24 24"
-      {...props}
-    >
-      <path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>
-    </svg>
-  );
-}
-
-export function IcBaselineVideocamOff(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="1em"
-      height="1em"
-      viewBox="0 0 24 24"
-      {...props}
-    >
-      <path
-        fill="currentColor"
-        d="m21 6.5l-4 4V7c0-.55-.45-1-1-1H9.82L21 17.18V6.5zM3.27 2L2 3.27L4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21L21 19.73L3.27 2z"
-      ></path>
-    </svg>
-  );
-}
-
-export function IcOutlineVideocamOff(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="1em"
-      height="1em"
-      viewBox="0 0 24 24"
-      {...props}
-    >
-      <path
-        fill="currentColor"
-        d="m9.56 8l-2-2l-4.15-4.14L2 3.27L4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.55-.18L19.73 21l1.41-1.41l-8.86-8.86L9.56 8zM5 16V8h1.73l8 8H5zm10-8v2.61l6 6V6.5l-4 4V7c0-.55-.45-1-1-1h-5.61l2 2H15z"
-      ></path>
-    </svg>
-  );
-}
 
 const PlayBar = ({
   activeLangs,
@@ -98,7 +35,6 @@ const PlayBar = ({
 }) => {
   const { query } = useRouter();
   const [isPlaying, setIsPlaying] = useState(false);
-  // const durationRef = useRef(player?.getDuration());
   const durationRef = player?.getDuration();
 
   const { data: songData, isLoading } = api.song.getById.useQuery(
@@ -220,8 +156,17 @@ const PlayBar = ({
   );
 };
 
-const LyricsComponent = ({ langs }: { langs: string[] }) => {
+const LyricsComponent = ({
+  langs,
+  currentTime,
+  player,
+}: {
+  langs: string[];
+  currentTime: number;
+  player: YouTubePlayer;
+}) => {
   const { query } = useRouter();
+  const lineRef = useRef<HTMLDivElement>(null);
   const { data: songData, isLoading } = api.song.getById.useQuery(
     query.songId as string
   );
@@ -255,6 +200,11 @@ const LyricsComponent = ({ langs }: { langs: string[] }) => {
   //   }
   // };
 
+  const timestamps = Array.from(Array(72).keys());
+  const passedLyrics = timestamps.filter((timestamp) => {
+    return currentTime >= timestamp;
+  });
+
   return (
     <div
       className={clsx(
@@ -270,17 +220,46 @@ const LyricsComponent = ({ langs }: { langs: string[] }) => {
               key={i}
               className="flex flex-col gap-4 text-4xl font-bold text-black"
             >
-              {lyric.content.split("\n").map((line, j) => (
-                <div
-                  key={j}
-                  className={clsx("cursor-pointer hover:text-white", {
-                    "text-white/70": j < lyric.content.split(`\n`).length / 2,
-                    "text-white": j === lyric.content.split(`\n`).length / 2,
-                  })}
-                >
-                  {line}
-                </div>
-              ))}
+              {lyric.content.split("\n").map((line, j) => {
+                return (
+                  <div
+                    ref={(node) => {
+                      if (
+                        node instanceof Element &&
+                        passedLyrics.length === j + 1
+                      ) {
+                        node.scrollIntoView({
+                          behavior: "smooth",
+                          block: "center",
+                          inline: "center",
+                        });
+                      }
+                    }}
+                    onClick={(e) => {
+                      player?.seekTo(timestamps[j], true);
+                      if (e.target instanceof Element) {
+                        e.target.scrollIntoView({
+                          behavior: "smooth",
+                          block: "center",
+                          inline: "center",
+                        });
+                      }
+                    }}
+                    key={j}
+                    className={clsx(
+                      "cursor-pointer hover:text-white",
+                      {
+                        "text-white": passedLyrics.length === j + 1,
+                      },
+                      {
+                        "text-white/70": passedLyrics.length > j + 1,
+                      }
+                    )}
+                  >
+                    {line}
+                  </div>
+                );
+              })}
             </div>
           ))}
       </div>
@@ -300,7 +279,7 @@ const YoutubeEmbed = ({
   playerHidden: boolean;
 }) => {
   const { query } = useRouter();
-
+  const intervalRef = useRef<NodeJS.Timeout>();
   const { data: songData, isLoading } = api.song.getById.useQuery(
     query.songId as string
   );
@@ -321,21 +300,16 @@ const YoutubeEmbed = ({
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
     // access to player in all event handlers via event.target
     setPlayer(event.target);
-    setInterval(() => {
-      const currentTime = event.target.getCurrentTime();
-      if (currentTime) {
-        setCurrentTime(event.target.getCurrentTime());
-        setPlayerState(event.target.getPlayerState());
-      }
+    clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setCurrentTime(event.target.getCurrentTime());
+      setPlayerState(event.target.getPlayerState());
     }, 100);
   };
 
   const opts: YouTubeProps["opts"] = {
     height: "158",
     width: "280",
-    playerVars: {
-      // https://developers.google.com/youtube/player_parameters
-    },
   };
 
   return (
@@ -367,7 +341,11 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
       <Head>
         <title>{songData.title}</title>
       </Head>
-      <LyricsComponent langs={langs} />
+      <LyricsComponent
+        langs={langs}
+        currentTime={currentTime}
+        player={player}
+      />
       <YoutubeEmbed
         {...{ setPlayer, setCurrentTime, setPlayerState, playerHidden }}
       />
@@ -390,6 +368,12 @@ import { appRouter } from "~/server/api/root";
 import { prisma } from "~/server/db";
 import superjson from "superjson";
 import clsx from "clsx";
+import {
+  IcBaselinePause,
+  IcBaselinePlayArrow,
+  IcBaselineVideocamOff,
+  IcOutlineVideocamOff,
+} from "~/components/Icons";
 
 export const getStaticProps: GetStaticProps = async (context) => {
   const ssg = createProxySSGHelpers({

@@ -8,20 +8,24 @@ import { api } from "~/utils/api";
 const Artist: NextPage = () => {
   const { query } = useRouter();
   if (typeof query.artistId !== "string") return null;
-  const artistQuery = api.artist.getById.useQuery(query.artistId);
+  const { data: artistData, isLoading } = api.artist.getById.useQuery(
+    query.artistId
+  );
+  if (isLoading) return <div>Loading...</div>;
+  if (!artistData) return <div>Artist not found</div>;
   return (
     <Layout>
       <Head>
-        <title>{artistQuery.data?.name}</title>
+        <title>{artistData.name}</title>
       </Head>
       <Image
-        src={artistQuery.data?.cover as string}
-        alt={`${artistQuery.data?.name as string} cover`}
+        src={artistData.cover}
+        alt={`${artistData.name} cover`}
         width={150}
         height={150}
       />
-      <h1>{artistQuery.data?.name}</h1>
-      <p>{artistQuery.data?.bio}</p>
+      <h1>{artistData.name}</h1>
+      <p>{artistData.bio}</p>
     </Layout>
   );
 };
