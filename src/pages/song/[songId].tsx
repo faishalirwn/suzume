@@ -2,35 +2,47 @@ import { type GetStaticProps, type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useRef, useState, type Dispatch, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import LanguageToggle from "~/components/LanguageToggle";
 import Layout from "~/components/Layout";
 import { api } from "~/utils/api";
+import { createProxySSGHelpers } from "@trpc/react-query/ssg";
+import { appRouter } from "~/server/api/root";
+import { prisma } from "~/server/db";
+import superjson from "superjson";
+import clsx from "clsx";
+import {
+  IcBaselinePause,
+  IcBaselinePlayArrow,
+  IcBaselineVideocamOff,
+  IcOutlineVideocamOff,
+} from "~/components/Icons";
 import * as Slider from "@radix-ui/react-slider";
-import YouTube, { type YouTubePlayer, type YouTubeProps } from "react-youtube";
-
-import { FastAverageColor } from "fast-average-color";
+import ReactPlayer from "react-player/youtube";
 
 const PlayBar = ({
   activeLangs,
   setLangs,
   player,
   currentTime,
-  playerState,
   playerHidden,
   setPlayerHidden,
+  setPlaying,
+  playing,
+  duration,
 }: {
   activeLangs: string[];
   setLangs: Dispatch<SetStateAction<string[]>>;
-  player: YouTubePlayer | undefined;
+  player: ReactPlayer;
   currentTime: number;
-  playerState: number;
   playerHidden: boolean;
   setPlayerHidden: Dispatch<SetStateAction<boolean>>;
+  setPlaying: Dispatch<SetStateAction<boolean>>;
+  playing: boolean;
+  duration: number;
 }) => {
   const { query } = useRouter();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const durationRef = player?.getDuration();
+  // const durationRef = player?.getDuration();
 
   const { data: songData, isLoading } = api.song.getById.useQuery(
     query.songId as string
@@ -68,9 +80,9 @@ const PlayBar = ({
         className="relative -mt-3 flex h-5 cursor-pointer touch-none select-none items-center"
         value={[currentTime]}
         onValueChange={(value) => {
-          void player?.seekTo(value[0] as number, true);
+          player.seekTo(value[0] as number, "seconds");
         }}
-        max={durationRef}
+        max={duration}
         step={0.01}
         aria-label="Progress bar"
       >
@@ -83,19 +95,17 @@ const PlayBar = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button className="h-12 w-12">
-              {(isPlaying || playerState === 1) && playerState !== 0 ? (
+              {playing ? (
                 <IcBaselinePause
                   onClick={() => {
-                    void player?.pauseVideo();
-                    setIsPlaying(false);
+                    setPlaying(false);
                   }}
                   className="h-full w-full"
                 />
               ) : (
                 <IcBaselinePlayArrow
                   onClick={() => {
-                    void player?.playVideo();
-                    setIsPlaying(true);
+                    setPlaying(true);
                   }}
                   className="h-full w-full"
                 />
@@ -103,7 +113,7 @@ const PlayBar = ({
             </button>
             <span className="text-sm text-[#aaa]">{`${formatTime(
               currentTime
-            )} / ${formatTime(durationRef)}`}</span>
+            )} / ${formatTime(duration)}`}</span>
           </div>
           <div className="flex items-center gap-3">
             <Image
@@ -158,7 +168,7 @@ const LyricsComponent = ({
 }: {
   langs: string[];
   currentTime: number;
-  player: YouTubePlayer | undefined;
+  player: ReactPlayer;
 }) => {
   const { query } = useRouter();
   const { data: songData, isLoading } = api.song.getById.useQuery(
@@ -230,7 +240,7 @@ const LyricsComponent = ({
                       }
                     }}
                     onClick={(e) => {
-                      void player?.seekTo(timestamps[j] as number, true);
+                      player.seekTo(timestamps[j] as number, "seconds");
                       if (e.target instanceof Element) {
                         e.target.scrollIntoView({
                           behavior: "smooth",
@@ -264,16 +274,19 @@ const LyricsComponent = ({
 const YoutubeEmbed = ({
   setPlayer,
   setCurrentTime,
-  setPlayerState,
   playerHidden,
+  setDuration,
+  playing,
+  setPlaying,
 }: {
-  setPlayer: Dispatch<SetStateAction<YouTubePlayer | undefined>>;
+  setPlayer: Dispatch<SetStateAction<ReactPlayer | undefined>>;
   setCurrentTime: Dispatch<SetStateAction<number>>;
-  setPlayerState: Dispatch<SetStateAction<number>>;
   playerHidden: boolean;
+  setDuration: Dispatch<SetStateAction<number>>;
+  playing: boolean;
+  setPlaying: Dispatch<SetStateAction<boolean>>;
 }) => {
   const { query } = useRouter();
-  const intervalRef = useRef<NodeJS.Timeout>();
   const { data: songData, isLoading } = api.song.getById.useQuery(
     query.songId as string
   );
@@ -291,30 +304,35 @@ const YoutubeEmbed = ({
       </div>
     );
 
-  const onPlayerReady: YouTubeProps["onReady"] = (event) => {
-    // access to player in all event handlers via event.target
-    setPlayer(event.target);
-    clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      setCurrentTime(event.target.getCurrentTime());
-      setPlayerState(event.target.getPlayerState());
-    }, 100);
-  };
-
-  const opts: YouTubeProps["opts"] = {
-    height: "158",
-    width: "280",
-  };
-
   return (
-    <div className="fixed bottom-24 left-0">
-      <YouTube
-        className={clsx({
-          hidden: playerHidden,
-        })}
-        videoId={songData.videoLink?.split("=")[1]}
-        opts={opts}
-        onReady={onPlayerReady}
+    <div
+      className={clsx("fixed bottom-24 left-0", {
+        hidden: playerHidden,
+      })}
+    >
+      <ReactPlayer
+        ref={(player) => {
+          setPlayer(player as ReactPlayer);
+        }}
+        class
+        url={songData.videoLink as string}
+        width="280px"
+        height="158px"
+        playing={playing}
+        controls={true}
+        progressInterval={100}
+        onPlay={() => {
+          setPlaying(true);
+        }}
+        onPause={() => {
+          setPlaying(false);
+        }}
+        onProgress={(progress) => {
+          setCurrentTime(progress.playedSeconds);
+        }}
+        onDuration={(duration) => {
+          setDuration(duration);
+        }}
       />
     </div>
   );
@@ -323,10 +341,12 @@ const YoutubeEmbed = ({
 const Song: NextPage<{ id: string }> = ({ id }) => {
   const { data: songData } = api.song.getById.useQuery(id);
   const [langs, setLangs] = useState([songData?.language as string]);
-  const [player, setPlayer] = useState<YouTubePlayer>();
   const [currentTime, setCurrentTime] = useState(0);
-  const [playerState, setPlayerState] = useState(-1);
   const [playerHidden, setPlayerHidden] = useState(false);
+  // const [seeking, setSeeking] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [player, setPlayer] = useState<ReactPlayer>();
 
   if (!songData) return <div>404</div>;
 
@@ -338,37 +358,30 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
       <LyricsComponent
         langs={langs}
         currentTime={currentTime}
-        player={player as YouTubePlayer}
+        player={player as ReactPlayer}
       />
       <YoutubeEmbed
         setPlayer={setPlayer}
         setCurrentTime={setCurrentTime}
-        setPlayerState={setPlayerState}
         playerHidden={playerHidden}
+        setDuration={setDuration}
+        playing={playing}
+        setPlaying={setPlaying}
       />
       <PlayBar
         activeLangs={langs}
         setLangs={setLangs}
-        player={player as YouTubePlayer}
+        player={player as ReactPlayer}
         currentTime={currentTime}
-        playerState={playerState}
         playerHidden={playerHidden}
         setPlayerHidden={setPlayerHidden}
+        setPlaying={setPlaying}
+        playing={playing}
+        duration={duration}
       />
     </Layout>
   );
 };
-import { createProxySSGHelpers } from "@trpc/react-query/ssg";
-import { appRouter } from "~/server/api/root";
-import { prisma } from "~/server/db";
-import superjson from "superjson";
-import clsx from "clsx";
-import {
-  IcBaselinePause,
-  IcBaselinePlayArrow,
-  IcBaselineVideocamOff,
-  IcOutlineVideocamOff,
-} from "~/components/Icons";
 
 export const getStaticProps: GetStaticProps = async (context) => {
   const ssg = createProxySSGHelpers({
