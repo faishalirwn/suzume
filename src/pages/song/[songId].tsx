@@ -140,7 +140,7 @@ const PlayBar = ({
           player?.seekTo(value[0]);
         }}
         max={durationRef}
-        step={1}
+        step={0.01}
         aria-label="Progress bar"
       >
         <Slider.Track className="relative h-[3px] grow rounded-full bg-white bg-opacity-10">
