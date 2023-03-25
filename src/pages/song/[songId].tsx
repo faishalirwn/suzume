@@ -219,53 +219,55 @@ const LyricsComponent = ({
       <div className="flex justify-center">
         {songData.lyrics
           .filter((lyric) => langs.includes(lyric.language))
-          .map((lyric, i) => (
-            <div
-              key={i}
-              className="flex flex-col gap-4 text-4xl font-bold text-black"
-            >
-              {lyric.content.split("\n").map((line, j) => {
-                return (
-                  <div
-                    ref={(node) => {
-                      if (
-                        node instanceof Element &&
-                        passedLyrics.length === j + 1
-                      ) {
-                        node.scrollIntoView({
-                          behavior: "smooth",
-                          block: "center",
-                          inline: "center",
-                        });
-                      }
-                    }}
-                    onClick={(e) => {
-                      player.seekTo(timestamps[j] as number, "seconds");
-                      if (e.target instanceof Element) {
-                        e.target.scrollIntoView({
-                          behavior: "smooth",
-                          block: "center",
-                          inline: "center",
-                        });
-                      }
-                    }}
-                    key={j}
-                    className={clsx(
-                      "cursor-pointer hover:text-white",
-                      {
-                        "text-white": passedLyrics.length === j + 1,
-                      },
-                      {
-                        "text-white/70": passedLyrics.length > j + 1,
-                      }
-                    )}
-                  >
-                    {line}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+          .map((lyric, i) => {
+            return (
+              <div
+                key={i}
+                className="flex flex-col gap-4 text-4xl font-bold text-black"
+              >
+                {lyric.content.split("\\n").map((line, j) => {
+                  return (
+                    <div
+                      ref={(node) => {
+                        if (
+                          node instanceof Element &&
+                          passedLyrics.length === j + 1
+                        ) {
+                          node.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                            inline: "center",
+                          });
+                        }
+                      }}
+                      onClick={(e) => {
+                        player.seekTo(timestamps[j] as number, "seconds");
+                        if (e.target instanceof Element) {
+                          e.target.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                            inline: "center",
+                          });
+                        }
+                      }}
+                      key={j}
+                      className={clsx(
+                        "cursor-pointer hover:text-white",
+                        {
+                          "text-white": passedLyrics.length === j + 1,
+                        },
+                        {
+                          "text-white/70": passedLyrics.length > j + 1,
+                        }
+                      )}
+                    >
+                      {line}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
       </div>
     </div>
   );
