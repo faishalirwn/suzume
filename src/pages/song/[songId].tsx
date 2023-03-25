@@ -2,12 +2,7 @@ import { type GetStaticProps, type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import {
-  useRef,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useRef, useState, type Dispatch, type SetStateAction } from "react";
 import LanguageToggle from "~/components/LanguageToggle";
 import Layout from "~/components/Layout";
 import { api } from "~/utils/api";
@@ -73,7 +68,7 @@ const PlayBar = ({
         className="relative -mt-3 flex h-5 cursor-pointer touch-none select-none items-center"
         value={[currentTime]}
         onValueChange={(value) => {
-          player?.seekTo(value[0]);
+          player?.seekTo(value[0], true);
         }}
         max={durationRef}
         step={0.01}
