@@ -22,7 +22,7 @@ const PlayBar = ({
 }: {
   activeLangs: string[];
   setLangs: Dispatch<SetStateAction<string[]>>;
-  player: YouTubePlayer;
+  player: YouTubePlayer | undefined;
   currentTime: number;
   playerState: number;
   playerHidden: boolean;
@@ -30,12 +30,7 @@ const PlayBar = ({
 }) => {
   const { query } = useRouter();
   const [isPlaying, setIsPlaying] = useState(false);
-  let durationRef = 0;
-  const getD = async () => {
-    const value = await player.getDuration();
-    durationRef = value;
-  };
-  // const durationRef = player.getDuration();
+  const durationRef = player?.getDuration();
 
   const { data: songData, isLoading } = api.song.getById.useQuery(
     query.songId as string
@@ -73,7 +68,7 @@ const PlayBar = ({
         className="relative -mt-3 flex h-5 cursor-pointer touch-none select-none items-center"
         value={[currentTime]}
         onValueChange={(value) => {
-          void player.seekTo(value[0] as number, true);
+          void player?.seekTo(value[0] as number, true);
         }}
         max={durationRef}
         step={0.01}
@@ -91,7 +86,7 @@ const PlayBar = ({
               {(isPlaying || playerState === 1) && playerState !== 0 ? (
                 <IcBaselinePause
                   onClick={() => {
-                    void player.pauseVideo();
+                    void player?.pauseVideo();
                     setIsPlaying(false);
                   }}
                   className="h-full w-full"
@@ -99,7 +94,7 @@ const PlayBar = ({
               ) : (
                 <IcBaselinePlayArrow
                   onClick={() => {
-                    void player.playVideo();
+                    void player?.playVideo();
                     setIsPlaying(true);
                   }}
                   className="h-full w-full"
@@ -163,7 +158,7 @@ const LyricsComponent = ({
 }: {
   langs: string[];
   currentTime: number;
-  player: YouTubePlayer;
+  player: YouTubePlayer | undefined;
 }) => {
   const { query } = useRouter();
   const { data: songData, isLoading } = api.song.getById.useQuery(
@@ -235,7 +230,7 @@ const LyricsComponent = ({
                       }
                     }}
                     onClick={(e) => {
-                      void player.seekTo(timestamps[j] as number, true);
+                      void player?.seekTo(timestamps[j] as number, true);
                       if (e.target instanceof Element) {
                         e.target.scrollIntoView({
                           behavior: "smooth",
@@ -301,14 +296,8 @@ const YoutubeEmbed = ({
     setPlayer(event.target);
     clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      let currentTime = 0,
-        playerState = 0;
-      const getValues = async () => {
-        currentTime = await event.target.getCurrentTime();
-        playerState = await event.target.getPlayerState();
-      };
-      setCurrentTime(currentTime);
-      setPlayerState(playerState);
+      setCurrentTime(event.target.getCurrentTime());
+      setPlayerState(event.target.getPlayerState());
     }, 100);
   };
 
