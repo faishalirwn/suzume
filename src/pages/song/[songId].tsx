@@ -326,7 +326,7 @@ const LyricsComponent = ({
           .map((lyric, i) => {
             return (
               <div key={i} className="flex flex-col gap-4">
-                {lyric.content.split("\\n").map((line, j) => {
+                {lyric.content.split("\n").map((line, j) => {
                   if (!karaokeMode) {
                     return (
                       <div key={j} className="text-xl font-medium">
