@@ -206,8 +206,6 @@ const PlayBar = ({
               <h1 className="font-medium leading-[1.2]">{songData.title}</h1>
               <div className="text-white/70">
                 <span>{songData.artist.name}</span>
-                <span> • </span>
-                <span>{songData.releaseDate.getFullYear()}</span>
               </div>
             </div>
           </div>
