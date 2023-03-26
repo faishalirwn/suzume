@@ -17,7 +17,7 @@ datasource db {
 model Artist {
     id        String   @id @default(cuid())
     name      String
-    bio       String
+    bio       String?
     cover     String
     songs     Song[]
     createdAt DateTime @default(now())
