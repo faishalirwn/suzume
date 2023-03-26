@@ -18,6 +18,7 @@ import { prisma } from "~/server/db";
 import superjson from "superjson";
 import clsx from "clsx";
 import {
+  IcBaselineDragIndicator,
   IcBaselineLyrics,
   IcBaselinePause,
   IcBaselinePlayArrow,
@@ -28,6 +29,7 @@ import {
 import * as Slider from "@radix-ui/react-slider";
 import ReactPlayer from "react-player/youtube";
 import * as Toggle from "@radix-ui/react-toggle";
+import { motion } from "framer-motion";
 
 const PlayBar = ({
   activeLangs,
@@ -189,11 +191,13 @@ const LyricsComponent = ({
   currentTime,
   player,
   karaokeMode,
+  lyricsComponentRef,
 }: {
   langs: string[];
   currentTime: number;
   player: ReactPlayer;
   karaokeMode: boolean;
+  lyricsComponentRef: React.RefObject<HTMLDivElement>;
 }) => {
   const { query } = useRouter();
   const [isScrolling, setIsScrolling] = useState(false);
@@ -244,6 +248,7 @@ const LyricsComponent = ({
 
   return (
     <div
+      ref={lyricsComponentRef}
       className={clsx(
         "h-[calc(100vh_-_140px)] overflow-y-scroll py-8",
         `bg-[#747777]`
@@ -280,7 +285,7 @@ const LyricsComponent = ({
                           }
                         }
                       }}
-                      onClick={(e) => {
+                      onClick={() => {
                         player.seekTo(timestamps[j] as number, "seconds");
                       }}
                       key={j}
@@ -313,6 +318,7 @@ const YoutubeEmbed = ({
   setDuration,
   playing,
   setPlaying,
+  lyricsComponentRef,
 }: {
   setPlayer: Dispatch<SetStateAction<ReactPlayer | undefined>>;
   setCurrentTime: Dispatch<SetStateAction<number>>;
@@ -320,6 +326,7 @@ const YoutubeEmbed = ({
   setDuration: Dispatch<SetStateAction<number>>;
   playing: boolean;
   setPlaying: Dispatch<SetStateAction<boolean>>;
+  lyricsComponentRef: React.RefObject<HTMLDivElement>;
 }) => {
   const { query } = useRouter();
   const { data: songData, isLoading } = api.song.getById.useQuery(
@@ -338,12 +345,13 @@ const YoutubeEmbed = ({
         <p>no data</p>
       </div>
     );
-
   return (
-    <div
-      className={clsx("fixed bottom-24 left-0", {
+    <motion.div
+      className={clsx("fixed bottom-24 left-0 flex", {
         hidden: playerHidden,
       })}
+      drag
+      dragConstraints={lyricsComponentRef}
     >
       <ReactPlayer
         ref={(player) => {
@@ -371,8 +379,45 @@ const YoutubeEmbed = ({
           setDuration(duration);
         }}
       />
-    </div>
+      <button className="h-6 w-6 cursor-move">
+        <IcBaselineDragIndicator className="h-full w-full" />
+      </button>
+    </motion.div>
   );
+  // return (
+  //   <div
+  //     className={clsx("fixed bottom-24 left-0", {
+  //       hidden: playerHidden,
+  //     })}
+  //   >
+  //     <ReactPlayer
+  //       ref={(player) => {
+  //         setPlayer(player as ReactPlayer);
+  //       }}
+  //       class
+  //       url={songData.videoLink as string}
+  //       width="280px"
+  //       height="158px"
+  //       // width="560px"
+  //       // height="316px"
+  //       playing={playing}
+  //       controls={true}
+  //       progressInterval={100}
+  //       onPlay={() => {
+  //         setPlaying(true);
+  //       }}
+  //       onPause={() => {
+  //         setPlaying(false);
+  //       }}
+  //       onProgress={(progress) => {
+  //         setCurrentTime(progress.playedSeconds);
+  //       }}
+  //       onDuration={(duration) => {
+  //         setDuration(duration);
+  //       }}
+  //     />
+  //   </div>
+  // );
 };
 
 const Song: NextPage<{ id: string }> = ({ id }) => {
@@ -386,6 +431,7 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
   const [playing, setPlaying] = useState(false);
   const [player, setPlayer] = useState<ReactPlayer>();
   const [karaokeMode, setKaraokeMode] = useState(false);
+  const lyricsComponentRef = useRef<HTMLDivElement>(null);
 
   if (!songData) return <div>404</div>;
 
@@ -399,6 +445,7 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
         currentTime={currentTime}
         player={player as ReactPlayer}
         karaokeMode={karaokeMode}
+        lyricsComponentRef={lyricsComponentRef}
       />
       <YoutubeEmbed
         setPlayer={setPlayer}
@@ -407,6 +454,7 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
         setDuration={setDuration}
         playing={playing}
         setPlaying={setPlaying}
+        lyricsComponentRef={lyricsComponentRef}
       />
       <PlayBar
         activeLangs={activeLangs}
