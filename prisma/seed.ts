@@ -13,11 +13,9 @@ const artistData: Prisma.ArtistCreateInput[] = [
           title: "Fukakouryoku",
           cover:
             "https://www.lyrical-nonsense.com/wp-content/uploads/2019/11/Vaundy-Fukakouryoku-2.jpg",
-          releaseDate: new Date("2019-11-09"),
           language: "ja",
           altTitle: "不可幸力",
-          lyricist: "Vaundy",
-          composer: "Vaundy",
+          videoLink: "https://www.youtube.com/watch?v=Gbz2C2gQREI",
           lyrics: {
             create: [
               {
@@ -42,15 +40,19 @@ const artistData: Prisma.ArtistCreateInput[] = [
           title: "odoriko",
           cover:
             "https://www.lyrical-nonsense.com/wp-content/uploads/2021/11/Vaundy-odoriko.jpg",
-          releaseDate: new Date("2021-11-17"),
           language: "ja",
           altTitle: "踊り子",
-          lyricist: "Vaundy",
-          composer: "Vaundy",
+          videoLink: "https://www.youtube.com/watch?v=7HgJIAUtICU",
           lyrics: {
             create: [
               {
-                content: "Nee, dokka ni oite kita you na",
+                content:
+                  "ねぇ、どっかに置いてきたような\n 事が一つ二つ浮いているけど\n ねぇ、ちゃんと拾っておこう\n はじけて忘れてしまう前に\n 回り出した　あの子と僕の未来が\n 止まりどっかで　またやり直せたら\n 回り出した　あの子と僕が被害者\n づらでどっかを　また練り歩けたらな\n とぅるるる　とぅるるる　とぅるる\n とぅるるる　とぅるるる　とぅるる\n とぅるるる　とぅるるる　とぅるる\n とぅるるる　とぅるるる　とぅるる\n あのね、私あなたに会ったの\n 夢の中に置いてきたけどね\n ねぇ、どうして私が好きなの\n 一度しか会ったことがないのにね\n 思いを蹴って\n 二人でしてんだ\n 壊(わす)れない愛を歌う\n 言葉を二人に課して\n 誓いをたてんだ\n 忘れない愛を歌うようにね\n 回り出した　あの子と僕の未来が\n 止まりどっかで　またやり直せたら\n 回り出した　あの子と僕が被害者\n づらでどっかを　また練り歩けたらな\n とぅるるる　とぅるるる　とぅるる\n とぅるるる　とぅるるる　とぅるる\n とぅるるる　とぅるるる　とぅるる\n とぅるるる　とぅるるる　とぅるる\n とぅるるる　とぅるるる　とぅるる\n とぅるるる　とぅるるる　とぅるる\n とぅるるる　とぅるるる　とぅるる\n とぅるるる　とぅるるる　とぅるる\n 回り出した　あの子と僕の未来が\n 止まりどっかで　またやり直せたら\n 回り出した　あの子と僕が被害者\n づらでどっかを　また練り歩けたらな\n 時代に乗って僕たちは\n 変わらず愛に生きるだろう\n 僕らが散って残るのは\n 変わらぬ愛の歌なんだろうな\n",
+                language: "ja",
+              },
+              {
+                content:
+                  "Nee, dokka ni oite kita you na\n Koto ga hitotsu futatsu uiteiru kedo\n Nee, chanto hirotte okou\n Hajikete wasurete shimau mae ni\n Mawaridashita ano ko to boku no mirai ga\n Tomari dokka de mata yarinaosetara\n Mawaridashita ano ko to boku ga higaisha\n Zura de dokka wo mata neriaruketara na\n Turururu turururu tururu\n Turururu turururu tururu\n Turururu turururu tururu\n Turururu turururu tururu\n Ano ne, watashi anata ni atta no\n Yume no naka ni oite kita kedo ne\n Nee, doushite watashi ga suki na no\n Ichido shika atta koto ga nai no ni ne\n Omoi wo kette\n Futari de shiten da\n Wasurenai ai wo utau\n Kotoba wo futari ni kashite\n Chikai wo taten da\n Wasurenai ai wo utau you ni ne\n Mawaridashita ano ko to boku no mirai ga\n Tomari dokka de mata yarinaosetara\n Mawaridashita ano ko to boku ga higaisha\n Zura de dokka wo mata neriaruketara na\n Turururu turururu tururu\n Turururu turururu tururu\n Turururu turururu tururu\n Turururu turururu tururu\n Turururu turururu tururu\n Turururu turururu tururu\n Turururu turururu tururu\n Turururu turururu tururu\n Mawaridashita ano ko to boku no mirai ga\n Tomari dokka de mata yarinaosetara\n Mawaridashita ano ko to boku ga higaisha\n Zura de dokka wo mata neriaruketara na\n Jidai ni notte bokutachi wa\n Kawarazu ai ni ikiru darou\n Bokura ga chitte nokoru no wa\n Kawaranu ai no uta nan darou na\n",
                 language: "tra",
               },
             ],
@@ -60,20 +62,20 @@ const artistData: Prisma.ArtistCreateInput[] = [
           title: "Shiwaawase",
           cover:
             "https://www.lyrical-nonsense.com/wp-content/uploads/2020/12/Vaundy-SHIAAWASE.jpg",
-          releaseDate: new Date("2021-04-11"),
           language: "ja",
           altTitle: "しわあわせ",
-          lyricist: "Vaundy",
-          composer: "Vaundy",
+          videoLink: "https://www.youtube.com/watch?v=JwmGruvGt_I",
           lyrics: {
             create: [
               {
-                content: "Boku no jika sougaku yonhyakuen no shinzou to",
-                language: "tra",
+                content:
+                  "僕の時価総額400円の心臓と\n 絵に描いたような君の綺麗な心臓を\n 合わせてできたしわの数が\n 僕達の未来の価値だ\n 残された時間が少ないのなら\n 崩れてく時間が増えてくのなら\n 零さないようにあわせて\n 変わらない\n 変われないよ　僕ら\n 今もしっかり握っている\n ちぎれない\n ちぎらないよ　僕ら\n 今もしっかり繋いでる手\n 僕の一生分なり続けている心拍と\n 透き通るような君の綺麗な一拍を\n 合わせてできた波の数だけ\n 僕達は揺らめきあってた\n 過ぎていく時が早すぎるのなら\n 有り余る隙間が悲しいのなら\n 零さないようにあわせて\n 変わらない\n 変われないよ　僕ら\n 今もしっかり握っている\n ちぎれない\n ちぎらないよ　僕ら\n 今もしっかり繋いでる\n 重なるひびを僕達は\n 流るるひびも僕達は\n 思い出すこともなくなって\n しまうんだろう\n しまうんだろうって\n 重なるひびを僕達は\n 流るるひびも僕達は\n 思い出すこともなくなって\n そんな\n しわあわせで\n 変わらない\n 変われないよ　僕ら\n 今もしっかり握っている\n ちぎれない\n ちぎらないよ　僕ら\n 今もしっかり繋いでる手\n 溢れ出す願い込めて僕らは\n 今から君の見てる方へと\n やるせない夢が覚めた頃に\n また、しわをあわせて\n",
+                language: "ja",
               },
               {
-                content: "400 yen",
-                language: "en",
+                content:
+                  "Boku no jika sougaku yonhyakuen no shinzou to E ni kaita you na kimi no kirei na shinzou wo Awasete dekita shiwa no kazu ga Boku tachi no mirai no kachi da Nokosareta jikan ga sukunai no nara Kuzureteku jikan ga fueteku no nara Kobosanai you ni awasete Kawaranai Kawarenai yo bokura Ima mo shikkari nigitteiru Chigirenai Chigiranai yo bokura Ima mo shikkari tsunaideru te Boku no isshoubun naritsuzuketeiru shinpaku to Sukitooru you na kimi no kirei na ippaku wo Awasete dekita nami no kazu dake Boku tachi wa yurameki atteta Sugite iku toki ga hayasugiru no nara Ariamaru sukima ga kanashii no nara Kobosanai you ni awasete Kawaranai Kawarenai yo bokura Ima mo shikkari nigitteiru Chigirenai Chigiranai yo bokura Ima mo shikkari tsunaideru Kasanaru hibi wo boku tachi wa Nagaruru hibi mo boku tachi wa Omoidasu koto mo nakunatte Shimaun darou Shimaun darou tte Kasanaru hibi wo boku tachi wa Nagaruru hibi mo boku tachi wa Omoidasu koto mo nakunatte Sonna Shiwa awase de Kawaranai Kawarenai yo bokura Ima mo shikkari nigitteiru Chigirenai Chigiranai yo bokura Ima mo shikkari tsunaideru te Afuredasu negai komete bokura wa Ima kara kimi no miteru hou e to Yarusenai yume ga sameta koro ni Mata, shiwa wo awasete",
+                language: "tra",
               },
             ],
           },
@@ -96,11 +98,9 @@ const artistData: Prisma.ArtistCreateInput[] = [
           title: "Last Dance",
           cover:
             "https://www.lyrical-nonsense.com/wp-content/uploads/Eve-Otogi-1.jpg",
-          releaseDate: new Date("2019-02-06"),
           language: "ja",
           altTitle: "ラストダンス",
-          lyricist: "Eve",
-          composer: "Eve",
+          videoLink: "https://www.youtube.com/watch?v=CLdeykXCZX4",
           lyrics: {
             create: [
               {
@@ -125,20 +125,59 @@ const artistData: Prisma.ArtistCreateInput[] = [
           title: "Tokyo Ghetto",
           cover:
             "https://www.lyrical-nonsense.com/wp-content/uploads/Eve-Otogi-1.jpg",
-          releaseDate: new Date("2019-02-06"),
           language: "ja",
           altTitle: "トーキョーゲットー",
-          lyricist: "Eve",
-          composer: "Eve",
+          videoLink: "https://www.youtube.com/watch?v=PvzBWFGEz8M",
           lyrics: {
             create: [
               {
-                content: "Daredemo ii ya daredemo ii kara dareka inai ka",
+                content:
+                  "誰でもいいや　誰でもいいから　誰かいないか\n 声ではないが　睨む視線が　２つと在ると思えた\n これでおさらば　呪縛からさらば夜が解けた\n 好奇心だった　有刺鉄線の向こう側へと\n 全然興味ないって　蝶が舞い込めば\n 想像通りだった　といえば嘘になるが\n 退廃的だった　コーヒーの泡をこぼした\n そんなそんな　毎日だった僕の前に\n 現れた君は\n どうしたってどうしたって　進めないままだ　ヒッピーなこの街の性に　\n どうやってどうやって理由を　”大事なんだ全部”　聞こえだけはいいけれど\n 向こう側から突如現れて気付けば　連れて行かれてしまいそうな僕ら\n 手放す事に怯えて　君は今日もステイ　君は今日もステイ\n 貴方々には　貴方々にはお世話になった\n 覚えはないが　何かと言いたい　そんな顔していますが\n 目に映るものが　ここに在るもの全てが　偽物でした\n 情にかけたって　棒に振ったって\n 今に始まる　精々舌を噛んでそこで黙っていれば\n 想定通りだった　といえば嘘になるが\n 感傷的だった　君らしくはないが\n そんなそんな　表情が　一瞬僕の目には　美しく映ってました\n ずっとどこかで貴方に憧れ　その度自分を　失いかけていました\n 本物を超えろ　ビビれば　君は今日もステイ\n どうしたってどうしたって　進めないままだ　ヒッピーなこの街の性に　\n どうやってどうやって理由を　”大事なんだ全部”　聞こえだけはいいけれど\n 向こう側から突如現れて気付けば　連れて行かれてしまいそうな僕ら\n 手放す事に怯えて　君は今日もステイ　君は今日もステイ\n ずっとどこかで貴方に憧れ　その度自分を　失いかけていました\n 本物を超えろ　ビビれば　君は今日もステイ　君は今日もステイ\n 君は今日もステイ\n",
+                language: "ja",
+              },
+              {
+                content:
+                  "Daredemo ii ya daredemo ii kara dareka inai ka\n Koe de wa nai ga niramu shisen ga futatsu to aru to omoeta\n Kore de osaraba jubaku kara saraba yoru ga hodoketa\n Koukishin datta yuushitessen no mukougawa e to\n Zenzen kyoumi nai tte chou ga maikomeba\n Souzoudoori datta to ieba uso ni naru ga\n Taihaiteki datta koohii no awa wo koboshita\n Sonna sonna mainichi datta boku no mae ni\n Arawareta kimi wa　\n Doushita tte doushita tte susumenai mama da hippii na kono machi no saga ni\n Douyatte douyatte riyuu wo “daiji nanda zenbu” kikoe dake wa ii keredo\n Mukougawa kara totsujo arawarete kizukeba tsureteikarete shimaisou na bokura\n Tebanasu koto ni obiete kimi wa kyou mo sutei kimi wa kyou mo sutei\n Anatagata ni wa anatagata ni wa osewa ni natta\n Oboe wa nai ga nanika to iitai sonna kao shiteimasu ga\n Me ni utsuru mono ga koko ni aru mono subete ga nisemono deshita\n Jou ni kaketatte bou ni futtatte\n Ima ni hajimaru seizei shita wo kande soko de damatte ireba\n Souteidoori datta to ieba uso ni naru ga\n Kanshouteki datta kimi rashiku wa nai ga\n Sonna sonna hyoujou ga isshun boku no me ni wa utsukushiku utsuttemashita\n Zutto dokoka de anata ni akogare sono tabi jibun wo ushinai kaketeimashita\n Honmono wo koero bibireba kimi wa kyou mo sutei\n Doushita tte doushita tte susumenai mama da hippii na kono machi no saga ni\n Douyatte douyatte riyuu wo “daiji nanda zenbu” kikoe dake wa ii keredo”\n Mukougawa kara totsujo arawarete kizukeba tsureteikarete shimaisou na bokura\n Tebanasu koto ni obiete kimi wa kyou mo sutei\n Zutto dokoka de anata ni akogare sono tabi jibun wo ushinai kaketeimashita\n Honmono wo koero bibireba kimi wa kyou mo sutei kimi wa kyou mo sutei\n Kimi wa kyou mo sutei\n",
                 language: "tra",
               },
-
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    name: "ATARASHII GAKKO!",
+    bio: `Atarashii Gakko!, known in Japan as Atarashii Gakkou no Leaders, is a Japanese girl group formed in 2015. The group is affiliated with ASOBISYSTEM.
+    Atarashii Gakko! made its Japanese debut in June 2017 under Victor Entertainment with the single Dokubana. The group made its worldwide debut in January 2021 under 88rising with the single NAINAINAI.
+    
+    From Wikipedia (https://en.wikipedia.org/wiki/Atarashii_Gakko!) under Creative Commons Attribution CC-BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0/legalcode)`,
+    cover:
+      "https://lh3.googleusercontent.com/dNg9ePIWP8C_zNv-ic-kNaWHwRsofCRb7CRAw_TbSLD1exgphghAe4Os2rvY5p9MIfOWm-DoDbbgsGs=w1440-h600-p-l90-rj",
+    songs: {
+      create: [
+        {
+          title: "OTONABLUE",
+          cover:
+            "https://www.lyrical-nonsense.com/wp-content/uploads/2023/03/ATARASHII-GAKKO-Otona-Blue.jpg",
+          language: "ja",
+          altTitle: "オトナブルー",
+          videoLink: "https://www.youtube.com/watch?v=l446hUqQ7GY",
+          lyrics: {
+            create: [
               {
-                content: "Whoever",
+                content:
+                  "わかってる　ほしいんでしょ？\n艶やかな　この唇\nヤワな男たち　惹き寄せる\n息を呑むほどに　甘い蜜\nわかってる　ほしいんでしょ？\n二度見する　この躰\n汗ばむ街　一人歩けば\n淫らな視線が絡みつく\nねえ何を期待してるの？\nそのうちじゃなくて　今すぐがいいの\n大人の恋に焦がれて\n見た目よりも　残るあどけない\nAh 心だけが　Ah 先走る\n青い蕾のまま　大人振る\nわかってる　ほしいんでしょ？\n刺激する　私の全て\n冷めた瞳まで魅了する\nいつかは花になるアマリリス\n優しいだけの　言葉じゃなくて\n心で繋がりたくて\nありきたりな　メイクじゃ隠せない\nAh 憧れだけ　Ah 夢を見る\nあなたの前で　また大人振る\nそのうちじゃなくて　今すぐがいいの\n大人の恋に焦がれて\n見た目よりも　残るあどけない\nAh 気持ちだけが　Ah から回る\n私を見つけて\n優しいだけの　言葉じゃなくて\n心で繋がりたくて\nありきたりな　メイクじゃ隠せない\nAh 憧れだけ　Ah 夢を見る\nまだ見ぬ恋路を　追いかけて　追いかけて\nまた　オトナブルー\n",
+                language: "ja",
+              },
+              {
+                content:
+                  "Wakatteru hoshiin desho?\n Tsuyayaka na kono kuchibiru\n Yawana otoko tachi hikiyoseru\n Iki wo nomu hodo ni amai mitsu\n Wakatteru hoshiin desho?\n Nidome suru kono karada\n Asebamu machi hitori arukeba\n Midara na shisen ga karamitsuku\n Nee nani wo kitai shiteru no?\n Sono uchi janakute ima sugu ga ii no\n Otona no koi ni kogarete\n Mitame yori mo nokoru adokenai\n Ah kokoro dake ga Ah sakibashiru\n Aoi tsubomi no mama otona buru\n Wakatteru hoshiin desho?\n Shigeki suru watashi no subete\n Sameta hitomi made miryou suru\n Itsuka wa hana ni naru amaririsu\n Yasashii dake no kotoba janakute\n Kokoro de tsunagaritakute\n Arikitari na meiku ja kakusenai\n Ah akogare dake Ah yume wo miru\n Anata no mae de mata otona buru\n Sono uchi janakute ima sugu ga ii no\n Otona no koi ni kogarete\n Mitame yori mo nokoru adokenai\n Ah kimochi dake ga Ah karamawaru\n Watashi wo mitsukete\n Yasashii dake no kotoba janakute\n Kokoro de tsunagaritakute\n Arikitari na meiku ja kakusenai\n Ah akogare dake Ah yume wo miru\n Mada minu koiji wo oikakete oikakete\n Mata otona buruu\n",
+                language: "tra",
+              },
+              {
+                content:
+                  "I know what you want,\n You want my alluring lips, don’t you?\n Drawing in all these desperate men\n With sweet nectar that takes your breath away.\n You know what you want, don’t you?\n My figure that has you mesmerized,\n Walking alone on the streets,\n The lusty gazes entangle with me.\n Hey, what are you expecting from me?\n Not later, I want it right now,\n I long for mature love.\n Younger than it looks,\n My heart runs ahead.\n I’ve yet to bloom, but I still pretend to\n I know what you want,\n you want my entire being that provokes you.\n Captivating you with my cold gaze.\n Someday, I’ll become a flower, an amaryllis.\n I don’t just want gentle words;\n I want to connect to you with my heart.\n My desires cannot be hidden by ordinary makeup.\n I only dream of my longings.\n I try to act mature in front of you, again.\n Not later, I want it right now,\n I long for mature love.\n Younger than it looks,\n My heart runs ahead.\n Come find me.\n I don’t just want gentle words;\n I want to connect to you with my heart.\n My desires cannot be hidden by ordinary makeup.\n I only dream of my longings\n Chasing after an unknown path of love, Chasing after it, chasing after it,\n I’m feeling OTONABLUE again.\n",
                 language: "en",
               },
             ],
