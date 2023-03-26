@@ -430,7 +430,7 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [player, setPlayer] = useState<ReactPlayer>();
-  const [karaokeMode, setKaraokeMode] = useState(false);
+  const [karaokeMode, setKaraokeMode] = useState(true);
   const lyricsComponentRef = useRef<HTMLDivElement>(null);
 
   if (!songData) return <div>404</div>;
