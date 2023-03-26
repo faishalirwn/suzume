@@ -18,17 +18,20 @@ import { prisma } from "~/server/db";
 import superjson from "superjson";
 import clsx from "clsx";
 import {
+  IcBaselineLyrics,
   IcBaselinePause,
   IcBaselinePlayArrow,
   IcBaselineVideocamOff,
+  IcOutlineLyrics,
   IcOutlineVideocamOff,
 } from "~/components/Icons";
 import * as Slider from "@radix-ui/react-slider";
 import ReactPlayer from "react-player/youtube";
+import * as Toggle from "@radix-ui/react-toggle";
 
 const PlayBar = ({
   activeLangs,
-  setLangs,
+  setActiveLangs,
   player,
   currentTime,
   playerHidden,
@@ -36,9 +39,11 @@ const PlayBar = ({
   setPlaying,
   playing,
   duration,
+  karaokeMode,
+  setKaraokeMode,
 }: {
   activeLangs: string[];
-  setLangs: Dispatch<SetStateAction<string[]>>;
+  setActiveLangs: Dispatch<SetStateAction<string[]>>;
   player: ReactPlayer;
   currentTime: number;
   playerHidden: boolean;
@@ -46,9 +51,10 @@ const PlayBar = ({
   setPlaying: Dispatch<SetStateAction<boolean>>;
   playing: boolean;
   duration: number;
+  karaokeMode: boolean;
+  setKaraokeMode: Dispatch<SetStateAction<boolean>>;
 }) => {
   const { query } = useRouter();
-  // const durationRef = player?.getDuration();
 
   const { data: songData, isLoading } = api.song.getById.useQuery(
     query.songId as string
@@ -95,28 +101,25 @@ const PlayBar = ({
         <Slider.Track className="relative h-[3px] grow rounded-full bg-white bg-opacity-10">
           <Slider.Range className="absolute h-full rounded-full bg-[#f00]" />
         </Slider.Track>
-        <Slider.Thumb className="block h-3 w-3 rounded-[10px] bg-[#f00] shadow-[0_2px_10px] shadow-gray-700 focus:outline-none" />
+        <Slider.Thumb className="block h-3 w-3 rounded-[10px] bg-[#f00] shadow-[0_2px_10px] shadow-gray-700 focus:z-10 focus:shadow-[0_0_0_2px] focus:shadow-white focus:outline-none" />
       </Slider.Root>
       <div className="mt- px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button className="h-12 w-12">
+            <Toggle.Root
+              aria-label="Toggle play/pause"
+              className="h-12 w-12"
+              pressed={playing}
+              onPressedChange={(playing) => {
+                setPlaying(playing);
+              }}
+            >
               {playing ? (
-                <IcBaselinePause
-                  onClick={() => {
-                    setPlaying(false);
-                  }}
-                  className="h-full w-full"
-                />
+                <IcBaselinePause className="h-full w-full" />
               ) : (
-                <IcBaselinePlayArrow
-                  onClick={() => {
-                    setPlaying(true);
-                  }}
-                  className="h-full w-full"
-                />
+                <IcBaselinePlayArrow className="h-full w-full" />
               )}
-            </button>
+            </Toggle.Root>
             <span className="text-sm text-[#aaa]">{`${formatTime(
               currentTime
             )} / ${formatTime(duration)}`}</span>
@@ -138,25 +141,39 @@ const PlayBar = ({
               </div>
             </div>
           </div>
-          <div className="flex gap-6">
-            <button>
-              {playerHidden ? (
-                <IcBaselineVideocamOff
-                  className="h-6 w-6"
-                  onClick={() => {
-                    setPlayerHidden(false);
-                  }}
-                />
+          <div className="flex items-center gap-6">
+            <Toggle.Root
+              aria-label="Toggle karaoke mode"
+              className="h-6 w-6"
+              pressed={karaokeMode}
+              onPressedChange={(karaokeMode) => {
+                setKaraokeMode(karaokeMode);
+              }}
+            >
+              {karaokeMode ? (
+                <IcBaselineLyrics className="h-full w-full" />
               ) : (
-                <IcOutlineVideocamOff
-                  className="h-6 w-6"
-                  onClick={() => {
-                    setPlayerHidden(true);
-                  }}
-                />
+                <IcOutlineLyrics className="h-full w-full" />
               )}
-            </button>
-            <LanguageToggle {...{ langs: langArr, activeLangs, setLangs }} />
+            </Toggle.Root>
+            <Toggle.Root
+              aria-label="Toggle player visibility"
+              title={`${playerHidden ? "Show" : "Hide"} player`}
+              className="h-6 w-6"
+              pressed={playerHidden}
+              onPressedChange={(pressed) => {
+                setPlayerHidden(pressed);
+              }}
+            >
+              {playerHidden ? (
+                <IcBaselineVideocamOff className="h-full w-full" />
+              ) : (
+                <IcOutlineVideocamOff className="h-full w-full" />
+              )}
+            </Toggle.Root>
+            <LanguageToggle
+              {...{ langs: langArr, activeLangs, setActiveLangs, karaokeMode }}
+            />
           </div>
           <p className="hidden">{songData.arranger}</p>
           <p className="hidden">{songData.composer}</p>
@@ -171,10 +188,12 @@ const LyricsComponent = ({
   langs,
   currentTime,
   player,
+  karaokeMode,
 }: {
   langs: string[];
   currentTime: number;
   player: ReactPlayer;
+  karaokeMode: boolean;
 }) => {
   const { query } = useRouter();
   const [isScrolling, setIsScrolling] = useState(false);
@@ -230,16 +249,20 @@ const LyricsComponent = ({
         `bg-[#747777]`
       )}
     >
-      <div className="flex justify-center">
+      <div className="flex justify-center gap-12">
         {songData.lyrics
           .filter((lyric) => langs.includes(lyric.language))
           .map((lyric, i) => {
             return (
-              <div
-                key={i}
-                className="flex flex-col gap-4 text-4xl font-bold text-black"
-              >
+              <div key={i} className="flex flex-col gap-4">
                 {lyric.content.split("\\n").map((line, j) => {
+                  if (!karaokeMode) {
+                    return (
+                      <div key={j} className="text-xl font-medium">
+                        {line}
+                      </div>
+                    );
+                  }
                   return (
                     <div
                       ref={(node) => {
@@ -249,7 +272,6 @@ const LyricsComponent = ({
                         ) {
                           const rect = node.getBoundingClientRect();
                           if (rect.top < 860 && rect.top > 70 && !isScrolling) {
-                            console.log("what");
                             node.scrollIntoView({
                               behavior: "smooth",
                               block: "center",
@@ -263,7 +285,7 @@ const LyricsComponent = ({
                       }}
                       key={j}
                       className={clsx(
-                        "cursor-pointer hover:text-white",
+                        "cursor-pointer text-4xl font-bold text-black hover:text-white",
                         {
                           "text-white": passedLyrics.length === j + 1,
                         },
@@ -355,13 +377,15 @@ const YoutubeEmbed = ({
 
 const Song: NextPage<{ id: string }> = ({ id }) => {
   const { data: songData } = api.song.getById.useQuery(id);
-  const [langs, setLangs] = useState([songData?.language as string]);
+  const [activeLangs, setActiveLangs] = useState([
+    songData?.language as string,
+  ]);
   const [currentTime, setCurrentTime] = useState(0);
   const [playerHidden, setPlayerHidden] = useState(false);
-  // const [seeking, setSeeking] = useState(false);
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [player, setPlayer] = useState<ReactPlayer>();
+  const [karaokeMode, setKaraokeMode] = useState(false);
 
   if (!songData) return <div>404</div>;
 
@@ -371,9 +395,10 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
         <title>{songData.title}</title>
       </Head>
       <LyricsComponent
-        langs={langs}
+        langs={activeLangs}
         currentTime={currentTime}
         player={player as ReactPlayer}
+        karaokeMode={karaokeMode}
       />
       <YoutubeEmbed
         setPlayer={setPlayer}
@@ -384,8 +409,8 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
         setPlaying={setPlaying}
       />
       <PlayBar
-        activeLangs={langs}
-        setLangs={setLangs}
+        activeLangs={activeLangs}
+        setActiveLangs={setActiveLangs}
         player={player as ReactPlayer}
         currentTime={currentTime}
         playerHidden={playerHidden}
@@ -393,6 +418,8 @@ const Song: NextPage<{ id: string }> = ({ id }) => {
         setPlaying={setPlaying}
         playing={playing}
         duration={duration}
+        karaokeMode={karaokeMode}
+        setKaraokeMode={setKaraokeMode}
       />
     </Layout>
   );
