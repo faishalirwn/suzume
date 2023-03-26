@@ -2,7 +2,13 @@ import { type GetStaticProps, type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useRef, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import LanguageToggle from "~/components/LanguageToggle";
 import Layout from "~/components/Layout";
 import { api } from "~/utils/api";
@@ -172,10 +178,16 @@ const LyricsComponent = ({
 }) => {
   const { query } = useRouter();
   const [isScrolling, setIsScrolling] = useState(false);
-  const activeLine = useRef<HTMLDivElement>();
   const { data: songData, isLoading } = api.song.getById.useQuery(
     query.songId as string
   );
+
+  useEffect(() => {
+    window.addEventListener("scroll", () => setIsScrolling(true));
+    return () =>
+      window.removeEventListener("scroll", () => setIsScrolling(false));
+  }, []);
+
   if (isLoading)
     return (
       <div className="max-h-[calc(100vh_-_140px)] overflow-y-scroll py-8">
@@ -217,12 +229,6 @@ const LyricsComponent = ({
         "h-[calc(100vh_-_140px)] overflow-y-scroll py-8",
         `bg-[#747777]`
       )}
-      onScroll={() => {
-        setIsScrolling(true);
-        setTimeout(() => {
-          setIsScrolling(false);
-        }, 1000);
-      }}
     >
       <div className="flex justify-center">
         {songData.lyrics
@@ -241,13 +247,9 @@ const LyricsComponent = ({
                           node instanceof Element &&
                           passedLyrics.length === j + 1
                         ) {
-                          activeLine.current = node;
                           const rect = node.getBoundingClientRect();
-                          if (
-                            rect.top < 825 &&
-                            rect.top > 125 &&
-                            !isScrolling
-                          ) {
+                          if (rect.top < 860 && rect.top > 70 && !isScrolling) {
+                            console.log("what");
                             node.scrollIntoView({
                               behavior: "smooth",
                               block: "center",
@@ -258,21 +260,6 @@ const LyricsComponent = ({
                       }}
                       onClick={(e) => {
                         player.seekTo(timestamps[j] as number, "seconds");
-                        if (e.target instanceof Element) {
-                          let rect = {} as DOMRect;
-                          if (typeof activeLine.current !== "undefined") {
-                            rect = activeLine.current.getBoundingClientRect();
-                          }
-
-                          e.target.scrollIntoView({
-                            behavior:
-                              rect && rect.top < 825 && rect.top > 125
-                                ? "smooth"
-                                : "auto",
-                            block: "center",
-                            inline: "center",
-                          });
-                        }
                       }}
                       key={j}
                       className={clsx(
