@@ -31,6 +31,7 @@ import * as Toggle from "@radix-ui/react-toggle";
 import { motion } from "framer-motion";
 
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
+import Link from "next/link";
 
 const LanguageToggle = ({
   langs,
@@ -203,10 +204,15 @@ const PlayBar = ({
               height={50}
             />
             <div className="flex flex-col">
-              <h1 className="font-medium leading-[1.2]">{songData.title}</h1>
-              <div className="text-white/70">
-                <span>{songData.artist.name}</span>
-              </div>
+              <Link href={`/song/${songData.id}`} className="hover:underline">
+                <h1 className="font-medium leading-[1.2]">{songData.title}</h1>
+              </Link>
+              <Link
+                href={`/artist/${songData.artist.id}`}
+                className="hover:underline"
+              >
+                <span className="text-white/70">{songData.artist.name}</span>
+              </Link>
             </div>
           </div>
           <div className="flex items-center gap-6">
@@ -243,9 +249,6 @@ const PlayBar = ({
               {...{ langs: langArr, activeLangs, setActiveLangs, karaokeMode }}
             />
           </div>
-          <p className="hidden">{songData.arranger}</p>
-          <p className="hidden">{songData.composer}</p>
-          <p className="hidden">{songData.lyricist}</p>
         </div>
       </div>
     </div>

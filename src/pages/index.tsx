@@ -43,9 +43,12 @@ const SongItem = (props: SongItemProps) => {
           width={226}
           height={226}
         />
-        <h1 className="text-lg font-medium">{title}</h1>
+        <h1 className="text-lg font-medium hover:underline">{title}</h1>
       </Link>
-      <Link href={`/artist/${artist.id}`} className="text-white/70">
+      <Link
+        href={`/artist/${artist.id}`}
+        className="text-white/70 hover:underline"
+      >
         {artist.name}
       </Link>
     </div>
