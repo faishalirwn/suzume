@@ -16,13 +16,7 @@ const SongList = () => {
   return (
     <div>
       <h1 className="mb-6 text-4xl font-bold">Trending</h1>
-      <div className="flex items-center gap-6 overflow-x-scroll whitespace-nowrap">
-        {songData.map((song, i) => (
-          <SongItem {...song} key={i} />
-        ))}
-        {songData.map((song, i) => (
-          <SongItem {...song} key={i} />
-        ))}
+      <div className="flex items-center gap-6 overflow-x-scroll whitespace-nowrap pb-8">
         {songData.map((song, i) => (
           <SongItem {...song} key={i} />
         ))}

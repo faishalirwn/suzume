@@ -2,7 +2,7 @@ import { type GetStaticProps, type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useRef, useState, type Dispatch, type SetStateAction } from "react";
 import LanguageToggle from "~/components/LanguageToggle";
 import Layout from "~/components/Layout";
 import { api } from "~/utils/api";
@@ -171,6 +171,8 @@ const LyricsComponent = ({
   player: ReactPlayer;
 }) => {
   const { query } = useRouter();
+  const [isScrolling, setIsScrolling] = useState(false);
+  const activeLine = useRef<HTMLDivElement>();
   const { data: songData, isLoading } = api.song.getById.useQuery(
     query.songId as string
   );
@@ -215,6 +217,12 @@ const LyricsComponent = ({
         "h-[calc(100vh_-_140px)] overflow-y-scroll py-8",
         `bg-[#747777]`
       )}
+      onScroll={() => {
+        setIsScrolling(true);
+        setTimeout(() => {
+          setIsScrolling(false);
+        }, 1000);
+      }}
     >
       <div className="flex justify-center">
         {songData.lyrics
@@ -233,18 +241,34 @@ const LyricsComponent = ({
                           node instanceof Element &&
                           passedLyrics.length === j + 1
                         ) {
-                          node.scrollIntoView({
-                            behavior: "smooth",
-                            block: "center",
-                            inline: "center",
-                          });
+                          activeLine.current = node;
+                          const rect = node.getBoundingClientRect();
+                          if (
+                            rect.top < 825 &&
+                            rect.top > 125 &&
+                            !isScrolling
+                          ) {
+                            node.scrollIntoView({
+                              behavior: "smooth",
+                              block: "center",
+                              inline: "center",
+                            });
+                          }
                         }
                       }}
                       onClick={(e) => {
                         player.seekTo(timestamps[j] as number, "seconds");
                         if (e.target instanceof Element) {
+                          let rect = {} as DOMRect;
+                          if (typeof activeLine.current !== "undefined") {
+                            rect = activeLine.current.getBoundingClientRect();
+                          }
+
                           e.target.scrollIntoView({
-                            behavior: "smooth",
+                            behavior:
+                              rect && rect.top < 825 && rect.top > 125
+                                ? "smooth"
+                                : "auto",
                             block: "center",
                             inline: "center",
                           });
@@ -320,6 +344,8 @@ const YoutubeEmbed = ({
         url={songData.videoLink as string}
         width="280px"
         height="158px"
+        // width="560px"
+        // height="316px"
         playing={playing}
         controls={true}
         progressInterval={100}
