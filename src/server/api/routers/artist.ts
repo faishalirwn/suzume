@@ -17,4 +17,20 @@ export const artistRouter = createTRPCRouter({
       },
     });
   }),
+  getListByName: publicProcedure
+    .input(z.string().min(1))
+    .query(({ ctx, input }) => {
+      return ctx.prisma.artist.findMany({
+        where: {
+          name: {
+            contains: input,
+            mode: "insensitive",
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+    }),
 });
