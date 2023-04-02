@@ -1,32 +1,13 @@
 import clsx from "clsx";
 import { type NextPage } from "next";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import Layout from "~/components/Layout";
 import { api } from "~/utils/api";
+import { useComponentVisible, useDebouncedValue } from "~/utils/hooks";
 
-function useComponentVisible(initialIsVisible: boolean) {
-  const [isComponentVisible, setIsComponentVisible] =
-    useState(initialIsVisible);
-  const ref = useRef<HTMLUListElement>(null);
-
-  const handleClickOutside = (event: MouseEvent) => {
-    if (ref.current && !ref.current.contains(event.target as Node)) {
-      setIsComponentVisible(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("click", handleClickOutside, true);
-    return () => {
-      document.removeEventListener("click", handleClickOutside, true);
-    };
-  }, []);
-
-  return { ref, isComponentVisible, setIsComponentVisible };
-}
-
+// form data types exluding debounced values
 type FormData = {
   artistName: string;
 };
@@ -38,13 +19,17 @@ const Submit: NextPage = () => {
     isComponentVisible: ulVisible,
     setIsComponentVisible: setUlVisible,
   } = useComponentVisible(true);
-  const { data: artistData, isLoading } = api.artist.getListByName.useQuery(
-    watch("artistName")
+  const [debouncedArtistName] = useDebouncedValue(
+    getValues("artistName"),
+    1000,
+    { leading: true }
   );
-  console.log(watch("artistName"));
+  const { data: artistData, isLoading } =
+    api.artist.getListByName.useQuery(debouncedArtistName);
+  console.log(watch("artistName"), debouncedArtistName);
   return (
     <Layout>
-      <form action="">
+      <form action="" autoComplete="off">
         <div className="mb-5 rounded-lg bg-gray-900 p-5">
           <h1 className="mb-5 text-xl font-bold text-white">Artist</h1>
           {/* <label htmlFor="artist-name">Artist Name</label> */}
