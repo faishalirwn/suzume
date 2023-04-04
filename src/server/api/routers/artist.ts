@@ -31,6 +31,7 @@ export const artistRouter = createTRPCRouter({
           id: true,
           name: true,
         },
+        take: 10,
       });
     }),
 });
