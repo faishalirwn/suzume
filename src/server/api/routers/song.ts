@@ -25,4 +25,39 @@ export const songRouter = createTRPCRouter({
       },
     });
   }),
+  getByArtistAndTitle: publicProcedure
+    .input(z.object({ artistId: z.string(), title: z.string() }))
+    .query(({ ctx, input }) => {
+      return ctx.prisma.song.findMany({
+        where: {
+          artistId: {
+            equals: input.artistId,
+          },
+          title: {
+            contains: input.title,
+            mode: "insensitive",
+          },
+        },
+        select: {
+          id: true,
+          title: true,
+        },
+      });
+    }),
+  getListByName: publicProcedure
+    .input(z.string().min(1))
+    .query(({ ctx, input }) => {
+      return ctx.prisma.song.findMany({
+        where: {
+          title: {
+            contains: input,
+            mode: "insensitive",
+          },
+        },
+        select: {
+          id: true,
+          title: true,
+        },
+      });
+    }),
 });
