@@ -61,6 +61,7 @@ const Submit: NextPage = () => {
     500,
     { leading: true }
   );
+
   const { data: artistData } =
     api.artist.getListByName.useQuery(debouncedArtistName);
   const { data: songListData } = api.song.getByArtistAndTitle.useQuery(
@@ -73,17 +74,10 @@ const Submit: NextPage = () => {
   const { data: songData } = api.song.getById.useQuery(getValues("songId"), {
     enabled: !!getValues("songId"),
   });
+
   useEffect(() => {
-    reset({
-      ...getValues(),
-      lyrics: [
-        {
-          language: songData?.language,
-          content: "",
-        },
-      ],
-    });
-  }, [songData, reset, getValues]);
+    setValue("lyrics.0.language", songData?.language);
+  }, [songData, setValue]);
 
   console.log(watch());
   // console.log("isNewArtist", isNewArtist);
