@@ -99,6 +99,13 @@ const Submit: NextPage = () => {
 
   console.log(watch());
   console.log("isNewArtist", isNewArtist);
+  console.log(
+    isNewArtist === true ||
+      songListData?.some(
+        (song) =>
+          song.title.toLowerCase() === getValues("songName").toLowerCase()
+      )
+  );
   console.log("songListData", songListData);
   console.log("songData", songData);
 
@@ -154,6 +161,7 @@ const Submit: NextPage = () => {
                       ],
                     });
                     setArtistSet(false);
+                    setSongSet(false);
                   }
                 },
               })}
@@ -202,7 +210,7 @@ const Submit: NextPage = () => {
                       setArtistUlVisible(false);
                       setShowSongForm(true);
                       setShowNewArtistForm(true);
-                      setShowNewSongForm(true);
+                      // setShowNewSongForm(true);
                     }}
                     className="cursor-pointer p-2 px-3 hover:bg-gray-800"
                   >
@@ -222,7 +230,7 @@ const Submit: NextPage = () => {
                   className="block w-full resize-none border-b border-gray-500 bg-transparent p-3 transition-colors focus:border-blue-300 focus:outline-none"
                   cols={30}
                   rows={10}
-                  placeholder="Artist Bio"
+                  placeholder="Artist Bio (Optional)"
                   id="bio"
                   {...register("bio")}
                 ></textarea>
@@ -230,7 +238,7 @@ const Submit: NextPage = () => {
                   className="block text-sm text-gray-500"
                   htmlFor="artist-cover"
                 >
-                  Artist Cover Image
+                  Artist Cover Image (Optional)
                 </label>
                 <input
                   type="file"
@@ -298,7 +306,7 @@ const Submit: NextPage = () => {
                       className={clsx("absolute w-full bg-gray-700")}
                       ref={songUlRef}
                     >
-                      {isNewArtist === false &&
+                      {!isNewArtist &&
                         songListData?.map((song) => (
                           <li
                             onClick={() => {
@@ -322,7 +330,7 @@ const Submit: NextPage = () => {
                             {song.title}
                           </li>
                         ))}
-                      {isNewArtist === true ||
+                      {!isNewArtist &&
                       songListData?.some(
                         (song) =>
                           song.title.toLowerCase() ===
@@ -357,7 +365,7 @@ const Submit: NextPage = () => {
                     <input
                       className="block w-full border-b border-gray-500 bg-transparent p-3 transition-colors focus:border-blue-300 focus:outline-none"
                       type="text"
-                      placeholder="Alt Song Title"
+                      placeholder="Alt Song Title (Optional)"
                       {...register("altSongTitle")}
                     />
                     <label
@@ -578,7 +586,7 @@ const Submit: NextPage = () => {
                       className="block text-sm text-gray-500"
                       htmlFor="song-cover"
                     >
-                      Song Cover Image
+                      Song Cover Image (Optional)
                     </label>
                     <input
                       type="file"
