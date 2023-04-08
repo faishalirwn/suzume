@@ -28,6 +28,9 @@ const config = {
       {
         hostname: "lh3.googleusercontent.com",
       },
+      {
+        hostname: "suzume.s3.ap-southeast-2.amazonaws.com",
+      },
     ],
   },
 };

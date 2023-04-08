@@ -1,3 +1,4 @@
+import { type Language } from "@prisma/client";
 import axios from "axios";
 import clsx from "clsx";
 import { type NextPage } from "next";
@@ -21,10 +22,10 @@ interface FormValues {
   altSongTitle: string;
   videoLink: string;
   songCover: FileList;
-  language: string;
+  language: Language;
   lyrics: {
-    language: string | undefined;
-    content: string | undefined;
+    language: Language;
+    content: string;
   }[];
 }
 
@@ -82,16 +83,19 @@ const Submit: NextPage = () => {
   const { data: songData } = api.song.getById.useQuery(getValues("songId"), {
     enabled: !!getValues("songId"),
   });
+  const { mutate, error } = api.artist.createNewArtist.useMutation();
 
   useEffect(() => {
     if (songSet) {
       setValue(
         "lyrics.0.language",
-        isNewSong ? getValues("language") : songData?.language
+        isNewSong ? getValues("language") : (songData?.language as Language)
       );
       setValue(
         "lyrics.0.content",
-        isNewSong ? "" : songData?.lyrics[0]?.content
+        isNewSong
+          ? getValues("lyrics.0.content")
+          : (songData?.lyrics[0]?.content as Language)
       );
     }
   }, [songData, isNewSong, songSet, getValues, setValue]);
@@ -110,6 +114,7 @@ const Submit: NextPage = () => {
     try {
       const imageToUpload = [data.artistCover[0], data.songCover[0]];
       const imgUrlArr: string[] = [];
+      const promises: Promise<any>[] = [];
       for (const image of imageToUpload) {
         if (!data.artistCover[0] && !data.songCover[0]) {
           break;
@@ -123,19 +128,51 @@ const Submit: NextPage = () => {
         const fileType = encodeURIComponent(image.type);
         const fileReader = new FileReader();
         fileReader.readAsDataURL(image);
-        fileReader.onload = async () => {
-          const { data: resp } = await axios.post<imageResponse>(
-            "/api/uploadAndCompressImage",
-            {
-              imageDataUrl: fileReader.result,
-              fileType,
+        const promise = new Promise((resolve, reject) => {
+          fileReader.onload = async () => {
+            try {
+              const { data: resp } = await axios.post<imageResponse>(
+                "/api/uploadAndCompressImage",
+                {
+                  imageDataUrl: fileReader.result,
+                  fileType,
+                }
+              );
+              const imageUrl = resp.imageUrl;
+              imgUrlArr.push(imageUrl);
+              resolve(imageUrl);
+            } catch (error) {
+              reject(error);
             }
-          );
-          const imageUrl = resp.imageUrl;
-          imgUrlArr.push(imageUrl);
-        };
+          };
+        });
+        promises.push(promise);
       }
-      console.log(imgUrlArr);
+      const cleanLyrics = data.lyrics.map((lyric) => {
+        return {
+          language: lyric.language,
+          content: lyric.content.replace(/(\r\n|\n|\r)/gm, "\n"),
+        };
+      });
+      Promise.all(promises)
+        .then(() => {
+          // console.log(imgUrlArr);
+          // console.log({
+          //   ...data,
+          //   artistCover: imgUrlArr[0] as string,
+          //   songCover: imgUrlArr[1] as string,
+          //   lyrics: cleanLyrics,
+          // });
+          mutate({
+            ...data,
+            artistCover: imgUrlArr[0] as string,
+            songCover: imgUrlArr[1] as string,
+            lyrics: cleanLyrics,
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     } catch (error) {
       console.error(error);
     }
@@ -171,10 +208,10 @@ const Submit: NextPage = () => {
                       altSongTitle: "",
                       videoLink: "",
                       songCover: new FileList(),
-                      language: "",
+                      language: undefined,
                       lyrics: [
                         {
-                          language: "",
+                          language: undefined,
                           content: "",
                         },
                       ],
@@ -319,10 +356,10 @@ const Submit: NextPage = () => {
                           altSongTitle: "",
                           videoLink: "",
                           songCover: new FileList(),
-                          language: "",
+                          language: undefined,
                           lyrics: [
                             {
-                              language: "",
+                              language: undefined,
                               content: "",
                             },
                           ],
@@ -418,7 +455,10 @@ const Submit: NextPage = () => {
                         //   required: (value) => value !== "" && isNewSong,
                         // },
                         onChange: (e: ChangeEvent<HTMLSelectElement>) => {
-                          setValue("lyrics.0.language", e.target.value);
+                          setValue(
+                            "lyrics.0.language",
+                            e.target.value as Language
+                          );
                         },
                       })}
                     >
@@ -493,7 +533,10 @@ const Submit: NextPage = () => {
                 className="rounder-lg mb-5 bg-gray-800 py-2 px-3"
                 type="button"
                 onClick={() => {
-                  append({ language: "", content: "" });
+                  append({
+                    language: Object.keys(lang)[0] as Language,
+                    content: "",
+                  });
                 }}
               >
                 Add language

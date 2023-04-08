@@ -35,7 +35,7 @@ export const artistRouter = createTRPCRouter({
         take: 10,
       });
     }),
-  createNewArtist: protectedProcedure
+  createNewArtist: publicProcedure
     .input(
       z.object({
         artistName: z.string().min(1),
