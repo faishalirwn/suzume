@@ -1,3 +1,4 @@
+import axios from "axios";
 import clsx from "clsx";
 import { type NextPage } from "next";
 import { type ChangeEvent, useEffect, useState } from "react";
@@ -13,9 +14,9 @@ interface FormValues {
   artistId: string;
   artistName: string;
   bio: string;
-  artistCover: string;
+  artistCover: FileList;
   songId: string;
-  songName: string;
+  songTitle: string;
   altSongTitle: string;
   videoLink: string;
   songCover: string;
@@ -63,14 +64,14 @@ const Submit: NextPage = () => {
   } = useComponentVisible(false);
 
   const [debouncedArtistName] = useDebouncedValue(watch("artistName"), 500);
-  const [debouncedSongName] = useDebouncedValue(watch("songName"), 500);
+  const [debouncedsongTitle] = useDebouncedValue(watch("songTitle"), 500);
 
   const { data: artistData } =
     api.artist.getListByName.useQuery(debouncedArtistName);
   const { data: songListData } = api.song.getByArtistAndTitle.useQuery(
     {
       artistId: getValues("artistId"),
-      title: debouncedSongName,
+      title: debouncedsongTitle,
     },
     { enabled: !!getValues("artistId") }
   );
@@ -97,10 +98,36 @@ const Submit: NextPage = () => {
   //   })
   // }, [isSubmitSuccessful])
 
-  const onSubmit = (data: FormValues) => {
-    console.log(data);
+  interface Media {
+    uploadUrl: string;
+    key: string;
+  }
+
+  const uploadToS3 = async (datas: FormValues) => {
+    const file = datas.artistCover[0];
+
+    if (!file) {
+      return null;
+    }
+
+    const fileType = encodeURIComponent(file.type);
+
+    const { data } = await axios.get<Media>(`/api/media?fileType=${fileType}`);
+
+    const { uploadUrl, key } = data;
+
+    await axios.put(uploadUrl, file);
+
+    const imageUrl = uploadUrl.split("?")[0];
+
+    return imageUrl;
   };
-  console.log(errors);
+
+  const onSubmit = async (data: FormValues) => {
+    // console.log(data);
+    const imageUrl = await uploadToS3(data);
+  };
+  // console.log(errors);
 
   return (
     <Layout className="pb-10">
@@ -126,9 +153,9 @@ const Submit: NextPage = () => {
                       artistId: "",
                       artistName: getValues("artistName"),
                       bio: "",
-                      artistCover: "",
+                      artistCover: new FileList(),
                       songId: "",
-                      songName: "",
+                      songTitle: "",
                       altSongTitle: "",
                       videoLink: "",
                       songCover: "",
@@ -219,13 +246,18 @@ const Submit: NextPage = () => {
                   className="block text-sm text-gray-500"
                   htmlFor="artist-cover"
                 >
-                  Artist Cover Image (Optional)
+                  Artist Cover Image
                 </label>
                 <input
                   type="file"
                   accept="image/png, image/jpeg"
-                  {...register("artistCover")}
+                  {...register("artistCover", {
+                    required: true,
+                  })}
                 />
+                {errors?.artistCover?.type === "required" && (
+                  <p>This field is required</p>
+                )}
               </div>
             )
           }
@@ -241,7 +273,7 @@ const Submit: NextPage = () => {
                   type="text"
                   placeholder="Song Title"
                   onClick={() => setSongUlVisible(true)}
-                  {...register("songName", {
+                  {...register("songTitle", {
                     required: true,
                     minLength: 1,
                     onChange: (e) => {
@@ -254,7 +286,7 @@ const Submit: NextPage = () => {
                           bio: getValues("bio"),
                           artistCover: getValues("artistCover"),
                           songId: "",
-                          songName: getValues("songName"),
+                          songTitle: getValues("songTitle"),
                           altSongTitle: "",
                           videoLink: "",
                           songCover: "",
@@ -271,14 +303,14 @@ const Submit: NextPage = () => {
                     },
                   })}
                 />
-                {errors?.songName?.type === "required" && (
+                {errors?.songTitle?.type === "required" && (
                   <p>This field is required</p>
                 )}
-                {errors?.songName?.type === "minLength" && (
+                {errors?.songTitle?.type === "minLength" && (
                   <p>Song name must be at least 1 character</p>
                 )}
-                {getValues("songName") &&
-                  getValues("songName").length !== 0 &&
+                {getValues("songTitle") &&
+                  getValues("songTitle").length !== 0 &&
                   songUlVisible && (
                     <ul
                       className={clsx("absolute w-full bg-gray-700")}
@@ -288,7 +320,7 @@ const Submit: NextPage = () => {
                         songListData?.map((song) => (
                           <li
                             onClick={() => {
-                              setValue("songName", song.title);
+                              setValue("songTitle", song.title);
                               setValue("songId", song.id);
 
                               setSongUlVisible(false);
@@ -301,7 +333,7 @@ const Submit: NextPage = () => {
                               "cursor-pointer p-2 px-3 hover:bg-gray-800",
                               {
                                 "bg-gray-600":
-                                  getValues("songName") === song.title,
+                                  getValues("songTitle") === song.title,
                               }
                             )}
                           >
@@ -312,7 +344,7 @@ const Submit: NextPage = () => {
                       songListData?.some(
                         (song) =>
                           song.title.toLowerCase() ===
-                          getValues("songName").toLowerCase()
+                          getValues("songTitle").toLowerCase()
                       ) ? null : (
                         <li
                           onClick={() => {
@@ -326,7 +358,7 @@ const Submit: NextPage = () => {
                           }}
                           className="cursor-pointer p-2 px-3 hover:bg-gray-800"
                         >
-                          {`Create new song (${debouncedSongName})`}
+                          {`Create new song (${debouncedsongTitle})`}
                         </li>
                       )}
                     </ul>
@@ -388,13 +420,16 @@ const Submit: NextPage = () => {
                       className="block text-sm text-gray-500"
                       htmlFor="song-cover"
                     >
-                      Song Cover Image (Optional)
+                      Song Cover Image
                     </label>
                     <input
                       type="file"
                       accept="image/png, image/jpeg"
                       {...register("songCover", { required: true })}
                     />
+                    {errors?.songCover?.type === "required" && (
+                      <p>This field is required</p>
+                    )}
                   </div>
                 )
               }
