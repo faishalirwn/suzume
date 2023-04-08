@@ -3,11 +3,17 @@ import { useRouter } from "next/router";
 import Footer from "./Footer";
 import Header from "./Header";
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+const Layout = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className: string;
+}) => {
   const router = useRouter();
   return (
     <div
-      className={clsx({
+      className={clsx(className, {
         "max-h-screen overflow-hidden": router.pathname === "/song/[songId]",
       })}
     >
