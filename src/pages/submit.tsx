@@ -1,6 +1,7 @@
 import axios from "axios";
 import clsx from "clsx";
 import { type NextPage } from "next";
+import Image from "next/image";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 
@@ -19,7 +20,7 @@ interface FormValues {
   songTitle: string;
   altSongTitle: string;
   videoLink: string;
-  songCover: string;
+  songCover: FileList;
   language: string;
   lyrics: {
     language: string | undefined;
@@ -51,6 +52,9 @@ const Submit: NextPage = () => {
   const [showNewSongForm, setShowNewSongForm] = useState(false);
   const [showSongForm, setShowSongForm] = useState(false);
   const [showLyricsForm, setShowLyricsForm] = useState(false);
+
+  const [artistCoverPreview, setArtistCoverPreview] = useState("");
+  const [songCoverPreview, setSongCoverPreview] = useState("");
 
   const {
     ref: artistUlRef,
@@ -98,36 +102,44 @@ const Submit: NextPage = () => {
   //   })
   // }, [isSubmitSuccessful])
 
-  interface Media {
-    uploadUrl: string;
-    key: string;
+  interface imageResponse {
+    imageUrl: string;
   }
 
-  const uploadToS3 = async (datas: FormValues) => {
-    const file = datas.artistCover[0];
+  const onSubmit = (data: FormValues) => {
+    try {
+      const imageToUpload = [data.artistCover[0], data.songCover[0]];
+      const imgUrlArr: string[] = [];
+      for (const image of imageToUpload) {
+        if (!data.artistCover[0] && !data.songCover[0]) {
+          break;
+        }
 
-    if (!file) {
-      return null;
+        if (!image) {
+          imgUrlArr.push("");
+          continue;
+        }
+
+        const fileType = encodeURIComponent(image.type);
+        const fileReader = new FileReader();
+        fileReader.readAsDataURL(image);
+        fileReader.onload = async () => {
+          const { data: resp } = await axios.post<imageResponse>(
+            "/api/uploadAndCompressImage",
+            {
+              imageDataUrl: fileReader.result,
+              fileType,
+            }
+          );
+          const imageUrl = resp.imageUrl;
+          imgUrlArr.push(imageUrl);
+        };
+      }
+      console.log(imgUrlArr);
+    } catch (error) {
+      console.error(error);
     }
-
-    const fileType = encodeURIComponent(file.type);
-
-    const { data } = await axios.get<Media>(`/api/media?fileType=${fileType}`);
-
-    const { uploadUrl, key } = data;
-
-    await axios.put(uploadUrl, file);
-
-    const imageUrl = uploadUrl.split("?")[0];
-
-    return imageUrl;
   };
-
-  const onSubmit = async (data: FormValues) => {
-    // console.log(data);
-    const imageUrl = await uploadToS3(data);
-  };
-  // console.log(errors);
 
   return (
     <Layout className="pb-10">
@@ -158,7 +170,7 @@ const Submit: NextPage = () => {
                       songTitle: "",
                       altSongTitle: "",
                       videoLink: "",
-                      songCover: "",
+                      songCover: new FileList(),
                       language: "",
                       lyrics: [
                         {
@@ -253,8 +265,25 @@ const Submit: NextPage = () => {
                   accept="image/png, image/jpeg"
                   {...register("artistCover", {
                     required: true,
+                    onChange: (e: ChangeEvent<HTMLInputElement>) => {
+                      if (e.target.files) {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setArtistCoverPreview(URL.createObjectURL(file));
+                        }
+                      }
+                    },
                   })}
                 />
+                {artistCoverPreview && (
+                  <Image
+                    className="mt-4 rounded-lg"
+                    src={artistCoverPreview}
+                    alt="Artist Cover Preview"
+                    width={200}
+                    height={200}
+                  />
+                )}
                 {errors?.artistCover?.type === "required" && (
                   <p>This field is required</p>
                 )}
@@ -289,7 +318,7 @@ const Submit: NextPage = () => {
                           songTitle: getValues("songTitle"),
                           altSongTitle: "",
                           videoLink: "",
-                          songCover: "",
+                          songCover: new FileList(),
                           language: "",
                           lyrics: [
                             {
@@ -425,8 +454,28 @@ const Submit: NextPage = () => {
                     <input
                       type="file"
                       accept="image/png, image/jpeg"
-                      {...register("songCover", { required: true })}
+                      {...register("songCover", {
+                        required: true,
+
+                        onChange: (e: ChangeEvent<HTMLInputElement>) => {
+                          if (e.target.files) {
+                            const file = e.target.files[0];
+                            if (file) {
+                              setSongCoverPreview(URL.createObjectURL(file));
+                            }
+                          }
+                        },
+                      })}
                     />
+                    {songCoverPreview && (
+                      <Image
+                        className="mt-4 rounded-lg"
+                        src={songCoverPreview}
+                        alt="Artist Cover Preview"
+                        width={200}
+                        height={200}
+                      />
+                    )}
                     {errors?.songCover?.type === "required" && (
                       <p>This field is required</p>
                     )}
