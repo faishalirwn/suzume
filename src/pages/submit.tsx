@@ -37,7 +37,7 @@ const Submit: NextPage = () => {
     getValues,
     control,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitSuccessful, isSubmitting },
     handleSubmit,
   } = useForm<FormValues>();
   const { fields, append, remove } = useFieldArray({
@@ -71,19 +71,23 @@ const Submit: NextPage = () => {
   const [debouncedArtistName] = useDebouncedValue(watch("artistName"), 500);
   const [debouncedsongTitle] = useDebouncedValue(watch("songTitle"), 500);
 
-  const { data: artistData } =
+  const { data: artistData, isLoading: artistDataLoading } =
     api.artist.getListByName.useQuery(debouncedArtistName);
-  const { data: songListData } = api.song.getByArtistAndTitle.useQuery(
-    {
-      artistId: getValues("artistId"),
-      title: debouncedsongTitle,
-    },
-    { enabled: !!getValues("artistId") }
-  );
+  const { data: songListData, isLoading: songListDataLoading } =
+    api.song.getByArtistAndTitle.useQuery(
+      {
+        artistId: getValues("artistId"),
+        title: debouncedsongTitle,
+      },
+      { enabled: !!getValues("artistId") }
+    );
   const { data: songData } = api.song.getById.useQuery(getValues("songId"), {
     enabled: !!getValues("songId"),
   });
-  const { mutate, error } = api.artist.createNewArtist.useMutation();
+  const { mutate: createNewArtist } = api.artist.createNewArtist.useMutation();
+  const { mutate: createNewSong } = api.song.createNewSong.useMutation();
+  const { mutate: createNewTranslation } =
+    api.lyrics.createNewTranslation.useMutation();
 
   useEffect(() => {
     if (songSet) {
@@ -100,11 +104,32 @@ const Submit: NextPage = () => {
     }
   }, [songData, isNewSong, songSet, getValues, setValue]);
 
-  // useEffect(() => {
-  //   reset({
-  //     data: 'test'
-  //   })
-  // }, [isSubmitSuccessful])
+  useEffect(() => {
+    setShowNewArtistForm(false);
+    setShowSongForm(false);
+    setShowNewSongForm(false);
+    setShowLyricsForm(false);
+    reset({
+      artistId: "",
+      artistName: "",
+      bio: "",
+      songId: "",
+      songTitle: "",
+      altSongTitle: "",
+      videoLink: "",
+      language: undefined,
+      lyrics: [
+        {
+          language: undefined,
+          content: "",
+        },
+      ],
+    });
+    setArtistSet(false);
+    setSongSet(false);
+    setArtistCoverPreview("");
+    setSongCoverPreview("");
+  }, [isSubmitSuccessful, getValues, reset]);
 
   interface imageResponse {
     imageUrl: string;
@@ -112,11 +137,14 @@ const Submit: NextPage = () => {
 
   const onSubmit = (data: FormValues) => {
     try {
-      const imageToUpload = [data.artistCover[0], data.songCover[0]];
+      const imageToUpload = [
+        data.artistCover ? data.artistCover[0] : null,
+        data.songCover ? data.songCover[0] : null,
+      ];
       const imgUrlArr: string[] = [];
       const promises: Promise<any>[] = [];
       for (const image of imageToUpload) {
-        if (!data.artistCover[0] && !data.songCover[0]) {
+        if (!data.artistCover && !data.songCover) {
           break;
         }
 
@@ -151,24 +179,61 @@ const Submit: NextPage = () => {
       const cleanLyrics = data.lyrics.map((lyric) => {
         return {
           language: lyric.language,
-          content: lyric.content.replace(/(\r\n|\n|\r)/gm, "\n"),
+          content: lyric.content
+            .replace(/^\s*$(?:\r\n?|\n)/gm, "")
+            .replace(/(\r\n|\n|\r)/gm, "\n"),
         };
       });
       Promise.all(promises)
         .then(() => {
-          // console.log(imgUrlArr);
-          // console.log({
-          //   ...data,
-          //   artistCover: imgUrlArr[0] as string,
-          //   songCover: imgUrlArr[1] as string,
-          //   lyrics: cleanLyrics,
-          // });
-          mutate({
+          console.log({
             ...data,
             artistCover: imgUrlArr[0] as string,
             songCover: imgUrlArr[1] as string,
             lyrics: cleanLyrics,
           });
+          console.log("isNewArtist isNewSong", isNewArtist, isNewSong);
+          if (isNewArtist && isNewSong) {
+            console.log("isNewArtist && isNewSong", isNewArtist, isNewSong);
+            console.log({
+              ...data,
+              artistCover: imgUrlArr[0] as string,
+              songCover: imgUrlArr[1] as string,
+              lyrics: cleanLyrics,
+            });
+            createNewArtist({
+              ...data,
+              artistCover: imgUrlArr[0] as string,
+              songCover: imgUrlArr[1] as string,
+              lyrics: cleanLyrics,
+            });
+          } else if (!isNewArtist && isNewSong) {
+            console.log("!isNewArtist && isNewSong", isNewArtist, isNewSong);
+            console.log({
+              ...data,
+              songCover: imgUrlArr[1] as string,
+              lyrics: cleanLyrics,
+            });
+            createNewSong({
+              ...data,
+              songCover: imgUrlArr[1] as string,
+              lyrics: cleanLyrics,
+            });
+          } else if (!isNewArtist && !isNewSong) {
+            console.log("!isNewArtist && !isNewSong", isNewArtist, isNewSong);
+            cleanLyrics.shift();
+            const cleanLyricsWithSongId = cleanLyrics.map((lyric, i) => {
+              return {
+                songId: getValues("songId"),
+                language: lyric.language,
+                content: lyric.content
+                  .replace(/^\s*$(?:\r\n?|\n)/gm, "")
+                  .replace(/(\r\n|\n|\r)/gm, "\n"),
+              };
+            });
+            console.log(cleanLyricsWithSongId);
+            createNewTranslation(cleanLyricsWithSongId);
+          }
         })
         .catch((error) => {
           console.error(error);
@@ -202,12 +267,10 @@ const Submit: NextPage = () => {
                       artistId: "",
                       artistName: getValues("artistName"),
                       bio: "",
-                      artistCover: new FileList(),
                       songId: "",
                       songTitle: "",
                       altSongTitle: "",
                       videoLink: "",
-                      songCover: new FileList(),
                       language: undefined,
                       lyrics: [
                         {
@@ -216,8 +279,11 @@ const Submit: NextPage = () => {
                         },
                       ],
                     });
+
                     setArtistSet(false);
                     setSongSet(false);
+                    setArtistCoverPreview("");
+                    setSongCoverPreview("");
                   }
                 },
               })}
@@ -228,12 +294,13 @@ const Submit: NextPage = () => {
             {errors?.artistName?.type === "minLength" && (
               <p>Artist name must be at least 1 character</p>
             )}
-            {artistData && artistUlVisible && (
+            {artistUlVisible && (
               <ul
                 className={clsx("absolute w-full bg-gray-700")}
                 ref={artistUlRef}
               >
-                {artistData.map((artist) => (
+                {artistDataLoading && <li className="p-2 px-3">Loading...</li>}
+                {artistData?.map((artist) => (
                   <li
                     onClick={() => {
                       setValue("artistName", artist.name);
@@ -256,26 +323,28 @@ const Submit: NextPage = () => {
                     {artist.name}
                   </li>
                 ))}
-                {artistData.some(
-                  (artist) =>
-                    artist.name.toLowerCase() ===
-                    getValues("artistName").toLowerCase()
-                ) ? null : (
-                  <li
-                    onClick={() => {
-                      // make additional form visible
-                      setValue("artistId", "");
-                      setArtistSet(true);
+                {artistData ? (
+                  artistData?.some(
+                    (artist) =>
+                      artist.name.toLowerCase() ===
+                      getValues("artistName").toLowerCase()
+                  ) ? null : (
+                    <li
+                      onClick={() => {
+                        // make additional form visible
+                        setValue("artistId", "");
+                        setArtistSet(true);
 
-                      setArtistUlVisible(false);
-                      setShowSongForm(true);
-                      setShowNewArtistForm(true);
-                    }}
-                    className="cursor-pointer p-2 px-3 hover:bg-gray-800"
-                  >
-                    {`Create new artist (${debouncedArtistName})`}
-                  </li>
-                )}
+                        setArtistUlVisible(false);
+                        setShowSongForm(true);
+                        setShowNewArtistForm(true);
+                      }}
+                      className="cursor-pointer p-2 px-3 hover:bg-gray-800"
+                    >
+                      {`Create new artist (${debouncedArtistName})`}
+                    </li>
+                  )
+                ) : null}
               </ul>
             )}
           </div>
@@ -355,7 +424,6 @@ const Submit: NextPage = () => {
                           songTitle: getValues("songTitle"),
                           altSongTitle: "",
                           videoLink: "",
-                          songCover: new FileList(),
                           language: undefined,
                           lyrics: [
                             {
@@ -365,6 +433,7 @@ const Submit: NextPage = () => {
                           ],
                         });
                         setSongSet(false);
+                        setSongCoverPreview("");
                       }
                     },
                   })}
@@ -382,6 +451,9 @@ const Submit: NextPage = () => {
                       className={clsx("absolute w-full bg-gray-700")}
                       ref={songUlRef}
                     >
+                      {songListDataLoading && (
+                        <li className="p-2 px-3">Loading...</li>
+                      )}
                       {!isNewArtist &&
                         songListData?.map((song) => (
                           <li
@@ -406,12 +478,13 @@ const Submit: NextPage = () => {
                             {song.title}
                           </li>
                         ))}
-                      {!isNewArtist &&
-                      songListData?.some(
-                        (song) =>
-                          song.title.toLowerCase() ===
-                          getValues("songTitle").toLowerCase()
-                      ) ? null : (
+                      {isNewArtist ||
+                      (songListData &&
+                        !songListData.some(
+                          (song) =>
+                            song.title.toLowerCase() ===
+                            getValues("songTitle").toLowerCase()
+                        )) ? (
                         <li
                           onClick={() => {
                             // make additional form visible
@@ -424,9 +497,13 @@ const Submit: NextPage = () => {
                           }}
                           className="cursor-pointer p-2 px-3 hover:bg-gray-800"
                         >
-                          {`Create new song (${debouncedsongTitle})`}
+                          {`Create new song (${
+                            isNewArtist
+                              ? getValues("songTitle")
+                              : debouncedsongTitle
+                          })`}
                         </li>
-                      )}
+                      ) : null}
                     </ul>
                   )}
               </div>
@@ -696,6 +773,7 @@ const Submit: NextPage = () => {
             <button
               className="rounder-lg mb-5 bg-gray-800 py-2 px-3"
               type="submit"
+              disabled={isSubmitting}
             >
               Submit
             </button>

@@ -222,6 +222,9 @@ const PlayBar = ({
               pressed={karaokeMode}
               onPressedChange={(karaokeMode) => {
                 setKaraokeMode(karaokeMode);
+                if (karaokeMode) {
+                  setActiveLangs([activeLangs[0] as string]);
+                }
               }}
             >
               {karaokeMode ? (

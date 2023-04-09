@@ -8,7 +8,7 @@ const Layout = ({
   className,
 }: {
   children: React.ReactNode;
-  className: string;
+  className?: string;
 }) => {
   const router = useRouter();
   return (

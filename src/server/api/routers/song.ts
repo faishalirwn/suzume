@@ -1,3 +1,4 @@
+import { Language } from "@prisma/client";
 import { z } from "zod";
 
 import {
@@ -59,5 +60,41 @@ export const songRouter = createTRPCRouter({
           title: true,
         },
       });
+    }),
+  createNewSong: publicProcedure
+    .input(
+      z.object({
+        artistId: z.string(),
+        songTitle: z.string().min(1),
+        altSongTitle: z.string(),
+        language: z.nativeEnum(Language),
+        songCover: z.string(),
+        videoLink: z.string(),
+        lyrics: z.array(
+          z.object({
+            language: z.nativeEnum(Language),
+            content: z.string(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const song = await ctx.prisma.song.create({
+        data: {
+          artistId: input.artistId,
+          title: input.songTitle,
+          altTitle: input.altSongTitle,
+          language: input.language,
+          cover: input.songCover,
+          videoLink: input.videoLink,
+          lyrics: {
+            create: input.lyrics.map((lyric) => ({
+              language: lyric.language,
+              content: lyric.content,
+            })),
+          },
+        },
+      });
+      return song;
     }),
 });
