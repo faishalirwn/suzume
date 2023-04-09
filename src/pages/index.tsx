@@ -5,24 +5,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { api, type RouterOutputs } from "~/utils/api";
 
-const SongList = () => {
-  const { data: songData, isLoading } = api.song.getAll.useQuery();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!songData) {
-    return <div>Something went wrong</div>;
-  }
-
+const SongList = ({
+  title,
+  songItems,
+}: {
+  title: string;
+  songItems: JSX.Element[];
+}) => {
   return (
     <div>
-      <h1 className="mb-6 text-4xl font-bold">Trending</h1>
-      <div className="flex items-center gap-6 overflow-x-scroll whitespace-nowrap pb-8">
-        {songData.map((song, i) => (
-          <SongItem {...song} key={i} />
-        ))}
+      <div>
+        <h1 className="mb-6 text-4xl font-bold">{title}</h1>
+        <div className="flex items-center gap-6 overflow-x-scroll whitespace-nowrap pb-8">
+          {songItems}
+        </div>
       </div>
     </div>
   );
@@ -56,9 +52,34 @@ const SongItem = (props: SongItemProps) => {
 };
 
 const Home: NextPage = () => {
+  const { data: songData, isLoading } = api.song.getAll.useQuery();
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <p>Loading...</p>
+      </Layout>
+    );
+  }
+
+  if (!songData) {
+    return (
+      <Layout>
+        <p>Something went wrong</p>
+      </Layout>
+    );
+  }
+
+  const songItems1 = songData.map((song, i) => <SongItem {...song} key={i} />);
+
+  const songItems2 = songItems1.splice(0, Math.round(songItems1.length / 2));
+
   return (
     <Layout>
-      <SongList />
+      <div className="flex flex-col gap-8">
+        <SongList title="Trending" songItems={songItems2} />
+        <SongList title="New Releases" songItems={songItems1} />
+      </div>
     </Layout>
   );
 };

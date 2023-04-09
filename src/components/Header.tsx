@@ -22,7 +22,7 @@ const Header = () => {
           雀
         </Link>
         <div className="flex items-center justify-between gap-12 ">
-          <Link
+          {/* <Link
             className={clsx(navLinkClassNames, {
               "text-white": router.pathname === "/explore",
             })}
@@ -37,7 +37,7 @@ const Header = () => {
             href="/library"
           >
             Library
-          </Link>
+          </Link> */}
           <Link
             className={clsx(navLinkClassNames, {
               "text-white": router.pathname === "/submit",
@@ -46,14 +46,14 @@ const Header = () => {
           >
             Submit
           </Link>
-          <Link
+          {/* <Link
             className={clsx(navLinkClassNames, {
               "text-white": router.pathname === "/search",
             })}
             href="/"
           >
             Search
-          </Link>
+          </Link> */}
         </div>
         <Link
           className={navLinkClassNames}

@@ -78,7 +78,7 @@ const LanguageToggle = ({
         value={activeLangs}
         onValueChange={(value) => {
           // Ensure at least one toggle is active
-          console.log(value);
+          // console.log(value);
           if (value && value.length !== 0 && value.length <= 3) {
             setActiveLangs(value);
           }

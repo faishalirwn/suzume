@@ -186,21 +186,21 @@ const Submit: NextPage = () => {
       });
       Promise.all(promises)
         .then(() => {
-          console.log({
-            ...data,
-            artistCover: imgUrlArr[0] as string,
-            songCover: imgUrlArr[1] as string,
-            lyrics: cleanLyrics,
-          });
-          console.log("isNewArtist isNewSong", isNewArtist, isNewSong);
+          // console.log({
+          //   ...data,
+          //   artistCover: imgUrlArr[0] as string,
+          //   songCover: imgUrlArr[1] as string,
+          //   lyrics: cleanLyrics,
+          // });
+          // console.log("isNewArtist isNewSong", isNewArtist, isNewSong);
           if (isNewArtist && isNewSong) {
-            console.log("isNewArtist && isNewSong", isNewArtist, isNewSong);
-            console.log({
-              ...data,
-              artistCover: imgUrlArr[0] as string,
-              songCover: imgUrlArr[1] as string,
-              lyrics: cleanLyrics,
-            });
+            // console.log("isNewArtist && isNewSong", isNewArtist, isNewSong);
+            // console.log({
+            //   ...data,
+            //   artistCover: imgUrlArr[0] as string,
+            //   songCover: imgUrlArr[1] as string,
+            //   lyrics: cleanLyrics,
+            // });
             createNewArtist({
               ...data,
               artistCover: imgUrlArr[0] as string,
@@ -208,19 +208,19 @@ const Submit: NextPage = () => {
               lyrics: cleanLyrics,
             });
           } else if (!isNewArtist && isNewSong) {
-            console.log("!isNewArtist && isNewSong", isNewArtist, isNewSong);
-            console.log({
-              ...data,
-              songCover: imgUrlArr[1] as string,
-              lyrics: cleanLyrics,
-            });
+            // console.log("!isNewArtist && isNewSong", isNewArtist, isNewSong);
+            // console.log({
+            //   ...data,
+            //   songCover: imgUrlArr[1] as string,
+            //   lyrics: cleanLyrics,
+            // });
             createNewSong({
               ...data,
               songCover: imgUrlArr[1] as string,
               lyrics: cleanLyrics,
             });
           } else if (!isNewArtist && !isNewSong) {
-            console.log("!isNewArtist && !isNewSong", isNewArtist, isNewSong);
+            // console.log("!isNewArtist && !isNewSong", isNewArtist, isNewSong);
             cleanLyrics.shift();
             const cleanLyricsWithSongId = cleanLyrics.map((lyric, i) => {
               return {
@@ -231,7 +231,7 @@ const Submit: NextPage = () => {
                   .replace(/(\r\n|\n|\r)/gm, "\n"),
               };
             });
-            console.log(cleanLyricsWithSongId);
+            // console.log(cleanLyricsWithSongId);
             createNewTranslation(cleanLyricsWithSongId);
           }
         })
