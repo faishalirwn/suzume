@@ -84,7 +84,7 @@ const Submit: NextPage = () => {
         artistId: getValues("artistId"),
         title: debouncedsongTitle,
       },
-      { enabled: sessionData?.user !== undefined && !!debouncedsongTitle }
+      { enabled: sessionData?.user !== undefined && !isNewArtist && !!debouncedsongTitle }
     );
   const { data: songData } = api.song.getById.useQuery(getValues("songId"), {
     enabled: sessionData?.user !== undefined && !!getValues("songId"),
@@ -466,7 +466,7 @@ const Submit: NextPage = () => {
                       className={clsx("absolute w-full bg-gray-700")}
                       ref={songUlRef}
                     >
-                      {songListDataLoading && (
+                      {!isNewArtist && songListDataLoading && (
                         <li className="p-2 px-3">Loading...</li>
                       )}
                       {!songListDataLoading &&
