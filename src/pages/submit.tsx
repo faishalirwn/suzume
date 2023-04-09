@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
+import * as Toast from "@radix-ui/react-toast";
 
 import Layout from "~/components/Layout";
 import { api } from "~/utils/api";
@@ -57,6 +58,7 @@ const Submit: NextPage = () => {
   const [showNewSongForm, setShowNewSongForm] = useState(false);
   const [showSongForm, setShowSongForm] = useState(false);
   const [showLyricsForm, setShowLyricsForm] = useState(false);
+  const [toastOpen, setToastOpen] = useState(false);
 
   const [artistCoverPreview, setArtistCoverPreview] = useState("");
   const [songCoverPreview, setSongCoverPreview] = useState("");
@@ -246,11 +248,13 @@ const Submit: NextPage = () => {
           // console.log(cleanLyricsWithSongId);
           createNewTranslation(cleanLyricsWithSongId);
         }
+        setToastOpen(true);
       })
       .catch((error) => {
         setError("root.serverError", {
           type: "400",
         });
+        setToastOpen(true);
         console.error(error);
       });
   };
@@ -262,8 +266,6 @@ const Submit: NextPage = () => {
       </Layout>
     );
   }
-
-  console.log("isSubmitSuccessful", isSubmitSuccessful);
 
   return (
     <Layout className="pb-10">
@@ -806,6 +808,18 @@ const Submit: NextPage = () => {
           </>
         )}
       </form>
+      <Toast.Root
+        className="data-[state=open]:animate-slideIn data-[state=closed]:animate-hide data-[swipe=end]:animate-swipeOut grid grid-cols-[auto_max-content] items-center gap-x-[15px] rounded-md bg-[#f1f1f1] p-[15px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] [grid-template-areas:_'title_action'_'description_action'] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-[transform_200ms_ease-out]"
+        open={toastOpen}
+        onOpenChange={setToastOpen}
+      >
+        <Toast.Title className="text-black [grid-area:_title]">
+          {errors.root?.serverError
+            ? "There was an error submitting the lyrics"
+            : "Lyrics submitted"}
+        </Toast.Title>
+      </Toast.Root>
+      <Toast.Viewport className="fixed bottom-0 right-0 z-[2147483647] m-0 flex w-[300px] max-w-[100vw] list-none flex-col gap-[10px] p-[var(--viewport-padding)] outline-none [--viewport-padding:_25px]" />
     </Layout>
   );
 };

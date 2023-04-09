@@ -2,6 +2,7 @@ import { type AppType } from "next/app";
 import { type Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import * as Progress from "@radix-ui/react-progress";
+import * as Toast from "@radix-ui/react-toast";
 
 import { api } from "~/utils/api";
 
@@ -73,16 +74,18 @@ const MyApp: AppType<{ session: Session | null }> = ({
   }, [router]);
 
   return (
-    <SessionProvider session={session}>
-      {loading && <Loader complete={complete} />}
-      {complete && <Loader complete={complete} />}
-      <Head>
-        <title>Suzume</title>
-        <meta name="description" content="💭" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <Component {...pageProps} />
-    </SessionProvider>
+    <Toast.Provider swipeDirection="right" duration={3000}>
+      <SessionProvider session={session}>
+        {loading && <Loader complete={complete} />}
+        {complete && <Loader complete={complete} />}
+        <Head>
+          <title>Suzume</title>
+          <meta name="description" content="💭" />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+        <Component {...pageProps} />
+      </SessionProvider>
+    </Toast.Provider>
   );
 };
 
