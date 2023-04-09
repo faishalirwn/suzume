@@ -40,8 +40,9 @@ const Submit: NextPage = () => {
     getValues,
     control,
     reset,
-    formState: { errors, isSubmitSuccessful, isSubmitting },
+    formState: { errors, isSubmitted, isSubmitSuccessful, isSubmitting },
     handleSubmit,
+    setError,
   } = useForm<FormValues>();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -84,7 +85,12 @@ const Submit: NextPage = () => {
         artistId: getValues("artistId"),
         title: debouncedsongTitle,
       },
-      { enabled: sessionData?.user !== undefined && !isNewArtist && !!debouncedsongTitle }
+      {
+        enabled:
+          sessionData?.user !== undefined &&
+          !isNewArtist &&
+          !!debouncedsongTitle,
+      }
     );
   const { data: songData } = api.song.getById.useQuery(getValues("songId"), {
     enabled: sessionData?.user !== undefined && !!getValues("songId"),
@@ -110,142 +116,143 @@ const Submit: NextPage = () => {
   }, [songData, isNewSong, songSet, getValues, setValue]);
 
   useEffect(() => {
-    setShowNewArtistForm(false);
-    setShowSongForm(false);
-    setShowNewSongForm(false);
-    setShowLyricsForm(false);
-    reset({
-      artistId: "",
-      artistName: "",
-      bio: "",
-      songId: "",
-      songTitle: "",
-      altSongTitle: "",
-      videoLink: "",
-      language: undefined,
-      lyrics: [
-        {
-          language: undefined,
-          content: "",
-        },
-      ],
-    });
-    setArtistSet(false);
-    setSongSet(false);
-    setArtistCoverPreview("");
-    setSongCoverPreview("");
-  }, [isSubmitSuccessful, getValues, reset]);
+    if (isSubmitted && isSubmitSuccessful && !errors.root?.serverError) {
+      setShowNewArtistForm(false);
+      setShowSongForm(false);
+      setShowNewSongForm(false);
+      setShowLyricsForm(false);
+      reset({
+        artistId: "",
+        artistName: "",
+        bio: "",
+        songId: "",
+        songTitle: "",
+        altSongTitle: "",
+        videoLink: "",
+        language: undefined,
+        lyrics: [
+          {
+            language: undefined,
+            content: "",
+          },
+        ],
+      });
+      setArtistSet(false);
+      setSongSet(false);
+      setArtistCoverPreview("");
+      setSongCoverPreview("");
+    }
+  }, [isSubmitSuccessful, isSubmitted, errors, reset]);
 
   interface imageResponse {
     imageUrl: string;
   }
 
   const onSubmit = (data: FormValues) => {
-    try {
-      const imageToUpload = [
-        data.artistCover ? data.artistCover[0] : null,
-        data.songCover ? data.songCover[0] : null,
-      ];
-      const imgUrlArr: string[] = [];
-      const promises: Promise<any>[] = [];
-      for (const image of imageToUpload) {
-        if (!data.artistCover && !data.songCover) {
-          break;
-        }
-
-        if (!image) {
-          imgUrlArr.push("");
-          continue;
-        }
-
-        const fileType = encodeURIComponent(image.type);
-        const fileReader = new FileReader();
-        fileReader.readAsDataURL(image);
-        const promise = new Promise((resolve, reject) => {
-          fileReader.onload = async () => {
-            try {
-              const { data: resp } = await axios.post<imageResponse>(
-                "/api/uploadAndCompressImage",
-                {
-                  imageDataUrl: fileReader.result,
-                  fileType,
-                }
-              );
-              const imageUrl = resp.imageUrl;
-              imgUrlArr.push(imageUrl);
-              resolve(imageUrl);
-            } catch (error) {
-              reject(error);
-            }
-          };
-        });
-        promises.push(promise);
+    const imageToUpload = [
+      data.artistCover ? data.artistCover[0] : null,
+      data.songCover ? data.songCover[0] : null,
+    ];
+    const imgUrlArr: string[] = [];
+    const promises: Promise<any>[] = [];
+    for (const image of imageToUpload) {
+      if (!data.artistCover && !data.songCover) {
+        break;
       }
-      const cleanLyrics = data.lyrics.map((lyric) => {
-        return {
-          language: lyric.language,
-          content: lyric.content
-            .replace(/^\s*$(?:\r\n?|\n)/gm, "")
-            .replace(/(\r\n|\n|\r)/gm, "\n"),
+
+      if (!image) {
+        imgUrlArr.push("");
+        continue;
+      }
+
+      const fileType = encodeURIComponent(image.type);
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(image);
+      const promise = new Promise((resolve, reject) => {
+        fileReader.onload = async () => {
+          try {
+            const { data: resp } = await axios.post<imageResponse>(
+              "/api/uploadAndCompressImage",
+              {
+                imageDataUrl: fileReader.result,
+                fileType,
+              }
+            );
+            const imageUrl = resp.imageUrl;
+            imgUrlArr.push(imageUrl);
+            resolve(imageUrl);
+          } catch (error) {
+            reject(error);
+          }
         };
       });
-      Promise.all(promises)
-        .then(() => {
+      promises.push(promise);
+    }
+    const cleanLyrics = data.lyrics.map((lyric) => {
+      return {
+        language: lyric.language,
+        content: lyric.content
+          .replace(/^\s*$(?:\r\n?|\n)/gm, "")
+          .replace(/(\r\n|\n|\r)/gm, "\n"),
+      };
+    });
+    Promise.all(promises)
+      .then(() => {
+        // console.log({
+        //   ...data,
+        //   artistCover: imgUrlArr[0] as string,
+        //   songCover: imgUrlArr[1] as string,
+        //   lyrics: cleanLyrics,
+        // });
+        // console.log("isNewArtist isNewSong", isNewArtist, isNewSong);
+        if (isNewArtist && isNewSong) {
+          // console.log("isNewArtist && isNewSong", isNewArtist, isNewSong);
           // console.log({
           //   ...data,
           //   artistCover: imgUrlArr[0] as string,
           //   songCover: imgUrlArr[1] as string,
           //   lyrics: cleanLyrics,
           // });
-          // console.log("isNewArtist isNewSong", isNewArtist, isNewSong);
-          if (isNewArtist && isNewSong) {
-            // console.log("isNewArtist && isNewSong", isNewArtist, isNewSong);
-            // console.log({
-            //   ...data,
-            //   artistCover: imgUrlArr[0] as string,
-            //   songCover: imgUrlArr[1] as string,
-            //   lyrics: cleanLyrics,
-            // });
-            createNewArtist({
-              ...data,
-              artistCover: imgUrlArr[0] as string,
-              songCover: imgUrlArr[1] as string,
-              lyrics: cleanLyrics,
-            });
-          } else if (!isNewArtist && isNewSong) {
-            // console.log("!isNewArtist && isNewSong", isNewArtist, isNewSong);
-            // console.log({
-            //   ...data,
-            //   songCover: imgUrlArr[1] as string,
-            //   lyrics: cleanLyrics,
-            // });
-            createNewSong({
-              ...data,
-              songCover: imgUrlArr[1] as string,
-              lyrics: cleanLyrics,
-            });
-          } else if (!isNewArtist && !isNewSong) {
-            // console.log("!isNewArtist && !isNewSong", isNewArtist, isNewSong);
-            cleanLyrics.shift();
-            const cleanLyricsWithSongId = cleanLyrics.map((lyric, i) => {
-              return {
-                songId: getValues("songId"),
-                language: lyric.language,
-                content: lyric.content
-                  .replace(/^\s*$(?:\r\n?|\n)/gm, "")
-                  .replace(/(\r\n|\n|\r)/gm, "\n"),
-              };
-            });
-            // console.log(cleanLyricsWithSongId);
-            createNewTranslation(cleanLyricsWithSongId);
-          }
-        })
-        .catch((error) => {
-          console.error(error);
+          createNewArtist({
+            ...data,
+            artistCover: imgUrlArr[0] as string,
+            songCover: imgUrlArr[1] as string,
+            lyrics: cleanLyrics,
+          });
+        } else if (!isNewArtist && isNewSong) {
+          // console.log("!isNewArtist && isNewSong", isNewArtist, isNewSong);
+          // console.log({
+          //   ...data,
+          //   songCover: imgUrlArr[1] as string,
+          //   lyrics: cleanLyrics,
+          // });
+          createNewSong({
+            ...data,
+            songCover: imgUrlArr[1] as string,
+            lyrics: cleanLyrics,
+          });
+        } else if (!isNewArtist && !isNewSong) {
+          // console.log("!isNewArtist && !isNewSong", isNewArtist, isNewSong);
+          cleanLyrics.shift();
+          const cleanLyricsWithSongId = cleanLyrics.map((lyric, i) => {
+            return {
+              songId: getValues("songId"),
+              language: lyric.language,
+              content: lyric.content
+                .replace(/^\s*$(?:\r\n?|\n)/gm, "")
+                .replace(/(\r\n|\n|\r)/gm, "\n"),
+            };
+          });
+          // console.log(cleanLyricsWithSongId);
+          createNewTranslation(cleanLyricsWithSongId);
+        }
+      })
+      .catch((error) => {
+        setError("root.serverError", {
+          type: "400",
         });
-    } catch (error) {
-      console.error(error);
-    }
+        console.error(error);
+      });
   };
 
   if (!sessionData) {
@@ -255,6 +262,8 @@ const Submit: NextPage = () => {
       </Layout>
     );
   }
+
+  console.log("isSubmitSuccessful", isSubmitSuccessful);
 
   return (
     <Layout className="pb-10">
@@ -367,7 +376,7 @@ const Submit: NextPage = () => {
           {
             // additional form for new artist
             showNewArtistForm && (
-              <div className="bg-red-900">
+              <div>
                 <textarea
                   className="block w-full resize-none border-b border-gray-500 bg-transparent p-3 transition-colors focus:border-blue-300 focus:outline-none"
                   cols={30}
@@ -528,7 +537,7 @@ const Submit: NextPage = () => {
               {
                 // additional form for new song
                 showNewSongForm && (
-                  <div className="bg-red-900">
+                  <div>
                     <input
                       className="block w-full border-b border-gray-500 bg-transparent p-3 transition-colors focus:border-blue-300 focus:outline-none"
                       type="text"
