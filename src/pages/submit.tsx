@@ -31,6 +31,8 @@ interface FormValues {
 }
 
 const Submit: NextPage = () => {
+  const { data: sessionData } = useSession();
+
   const {
     register,
     setValue,
@@ -73,17 +75,19 @@ const Submit: NextPage = () => {
   const [debouncedsongTitle] = useDebouncedValue(watch("songTitle"), 500);
 
   const { data: artistData, isLoading: artistDataLoading } =
-    api.artist.getListByName.useQuery(debouncedArtistName);
+    api.artist.getListByName.useQuery(debouncedArtistName, {
+      enabled: sessionData?.user !== undefined && !!debouncedArtistName,
+    });
   const { data: songListData, isLoading: songListDataLoading } =
     api.song.getByArtistAndTitle.useQuery(
       {
         artistId: getValues("artistId"),
         title: debouncedsongTitle,
       },
-      { enabled: !!getValues("artistId") }
+      { enabled: sessionData?.user !== undefined && !!debouncedsongTitle }
     );
   const { data: songData } = api.song.getById.useQuery(getValues("songId"), {
-    enabled: !!getValues("songId"),
+    enabled: sessionData?.user !== undefined && !!getValues("songId"),
   });
   const { mutate: createNewArtist } = api.artist.createNewArtist.useMutation();
   const { mutate: createNewSong } = api.song.createNewSong.useMutation();
@@ -243,8 +247,6 @@ const Submit: NextPage = () => {
       console.error(error);
     }
   };
-
-  const { data: sessionData } = useSession();
 
   if (!sessionData) {
     return (
