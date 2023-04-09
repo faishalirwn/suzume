@@ -61,7 +61,7 @@ export const songRouter = createTRPCRouter({
         },
       });
     }),
-  createNewSong: publicProcedure
+  createNewSong: protectedProcedure
     .input(
       z.object({
         artistId: z.string(),

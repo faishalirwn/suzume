@@ -8,7 +8,7 @@ import {
 } from "~/server/api/trpc";
 
 export const lyricsRouter = createTRPCRouter({
-  createNewTranslation: publicProcedure
+  createNewTranslation: protectedProcedure
     .input(
       z.array(
         z.object({

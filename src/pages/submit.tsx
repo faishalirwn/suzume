@@ -74,11 +74,11 @@ const Submit: NextPage = () => {
   const [debouncedArtistName] = useDebouncedValue(watch("artistName"), 500);
   const [debouncedsongTitle] = useDebouncedValue(watch("songTitle"), 500);
 
-  const { data: artistData, isLoading: artistDataLoading } =
+  const { data: artistData, isFetching: artistDataLoading } =
     api.artist.getListByName.useQuery(debouncedArtistName, {
       enabled: sessionData?.user !== undefined && !!debouncedArtistName,
     });
-  const { data: songListData, isLoading: songListDataLoading } =
+  const { data: songListData, isFetching: songListDataLoading } =
     api.song.getByArtistAndTitle.useQuery(
       {
         artistId: getValues("artistId"),
@@ -313,30 +313,32 @@ const Submit: NextPage = () => {
                 ref={artistUlRef}
               >
                 {artistDataLoading && <li className="p-2 px-3">Loading...</li>}
-                {artistData?.map((artist) => (
-                  <li
-                    onClick={() => {
-                      setValue("artistName", artist.name);
-                      setValue("artistId", artist.id);
-                      setArtistSet(true);
+                {!artistDataLoading &&
+                  artistData?.map((artist) => (
+                    <li
+                      onClick={() => {
+                        setValue("artistName", artist.name);
+                        setValue("artistId", artist.id);
+                        setArtistSet(true);
 
-                      setArtistUlVisible(false);
-                      setShowNewArtistForm(false);
-                      setShowSongForm(true);
-                      setShowNewSongForm(false);
-                    }}
-                    key={artist.id}
-                    className={clsx(
-                      "cursor-pointer p-2 px-3 hover:bg-gray-800",
-                      {
-                        "bg-gray-600": getValues("artistName") === artist.name,
-                      }
-                    )}
-                  >
-                    {artist.name}
-                  </li>
-                ))}
-                {artistData ? (
+                        setArtistUlVisible(false);
+                        setShowNewArtistForm(false);
+                        setShowSongForm(true);
+                        setShowNewSongForm(false);
+                      }}
+                      key={artist.id}
+                      className={clsx(
+                        "cursor-pointer p-2 px-3 hover:bg-gray-800",
+                        {
+                          "bg-gray-600":
+                            getValues("artistName") === artist.name,
+                        }
+                      )}
+                    >
+                      {artist.name}
+                    </li>
+                  ))}
+                {!artistDataLoading && artistData ? (
                   artistData?.some(
                     (artist) =>
                       artist.name.toLowerCase() ===
@@ -467,7 +469,8 @@ const Submit: NextPage = () => {
                       {songListDataLoading && (
                         <li className="p-2 px-3">Loading...</li>
                       )}
-                      {!isNewArtist &&
+                      {!songListDataLoading &&
+                        !isNewArtist &&
                         songListData?.map((song) => (
                           <li
                             onClick={() => {
@@ -492,7 +495,8 @@ const Submit: NextPage = () => {
                           </li>
                         ))}
                       {isNewArtist ||
-                      (songListData &&
+                      (!songListDataLoading &&
+                        songListData &&
                         !songListData.some(
                           (song) =>
                             song.title.toLowerCase() ===
