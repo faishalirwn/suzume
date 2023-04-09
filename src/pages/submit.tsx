@@ -2,6 +2,7 @@ import { type Language } from "@prisma/client";
 import axios from "axios";
 import clsx from "clsx";
 import { type NextPage } from "next";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -242,6 +243,16 @@ const Submit: NextPage = () => {
       console.error(error);
     }
   };
+
+  const { data: sessionData } = useSession();
+
+  if (!sessionData) {
+    return (
+      <Layout>
+        <p>You must be logged in to submit</p>
+      </Layout>
+    );
+  }
 
   return (
     <Layout className="pb-10">

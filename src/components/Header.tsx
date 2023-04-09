@@ -38,14 +38,16 @@ const Header = () => {
           >
             Library
           </Link> */}
-          <Link
-            className={clsx(navLinkClassNames, {
-              "text-white": router.pathname === "/submit",
-            })}
-            href="/submit"
-          >
-            Submit
-          </Link>
+          {sessionData && (
+            <Link
+              className={clsx(navLinkClassNames, {
+                "text-white": router.pathname === "/submit",
+              })}
+              href="/submit"
+            >
+              Submit
+            </Link>
+          )}
           {/* <Link
             className={clsx(navLinkClassNames, {
               "text-white": router.pathname === "/search",
@@ -55,13 +57,12 @@ const Header = () => {
             Search
           </Link> */}
         </div>
-        <Link
+        <button
           className={navLinkClassNames}
-          href="/login"
           onClick={sessionData ? () => void signOut() : () => void signIn()}
         >
           {sessionData ? "Sign out" : "Sign in"}
-        </Link>
+        </button>
       </nav>
     </>
   );
