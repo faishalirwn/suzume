@@ -52,6 +52,7 @@ const Submit: NextPage = () => {
 
   const isNewArtist = getValues("artistId") === "";
   const isNewSong = getValues("songId") === "";
+  const selectedLangs = getValues("lyrics").map((lyric) => lyric.language);
   const [artistSet, setArtistSet] = useState(false);
   const [songSet, setSongSet] = useState(false);
   const [showNewArtistForm, setShowNewArtistForm] = useState(false);
@@ -753,11 +754,16 @@ const Submit: NextPage = () => {
                           })}
                         >
                           {Object.keys(lang).map((keyName, i) => {
+                            const langAlreadySelected =
+                              selectedLangs.includes(keyName as Language) &&
+                              index !==
+                                selectedLangs.indexOf(keyName as Language);
+
                             if (!isNewSong && songData) {
                               const langAlreadyExist = songData?.lyrics.some(
                                 (lyric) => lyric.language === keyName
                               );
-                              if (!langAlreadyExist) {
+                              if (!langAlreadyExist && !langAlreadySelected) {
                                 return (
                                   <option value={keyName} key={i}>
                                     {lang[keyName as keyof typeof lang]}
@@ -765,11 +771,13 @@ const Submit: NextPage = () => {
                                 );
                               }
                             } else {
-                              return (
-                                <option value={keyName} key={i}>
-                                  {lang[keyName as keyof typeof lang]}
-                                </option>
-                              );
+                              if (!langAlreadySelected) {
+                                return (
+                                  <option value={keyName} key={i}>
+                                    {lang[keyName as keyof typeof lang]}
+                                  </option>
+                                );
+                              }
                             }
                           })}
                         </select>
