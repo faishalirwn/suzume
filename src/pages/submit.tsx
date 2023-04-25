@@ -52,7 +52,7 @@ const Submit: NextPage = () => {
 
   const isNewArtist = getValues("artistId") === "";
   const isNewSong = getValues("songId") === "";
-  const selectedLangs = getValues("lyrics").map((lyric) => lyric.language);
+  const selectedLangs = getValues("lyrics")?.map((lyric) => lyric.language);
   const [artistSet, setArtistSet] = useState(false);
   const [songSet, setSongSet] = useState(false);
   const [showNewArtistForm, setShowNewArtistForm] = useState(false);
