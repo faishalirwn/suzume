@@ -25,7 +25,6 @@ export const artistRouter = createTRPCRouter({
         where: {
           name: {
             contains: input,
-            mode: "insensitive",
           },
         },
         select: {

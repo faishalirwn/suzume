@@ -36,7 +36,6 @@ export const songRouter = createTRPCRouter({
           },
           title: {
             contains: input.title,
-            mode: "insensitive",
           },
         },
         select: {
@@ -52,7 +51,6 @@ export const songRouter = createTRPCRouter({
         where: {
           title: {
             contains: input,
-            mode: "insensitive",
           },
         },
         select: {
