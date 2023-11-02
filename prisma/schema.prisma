@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Artist {
+  id String              @id @default(uuid())
+  name      String
+  profile_image String
+  description String
+  social_twitter String
+  social_ig String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  songs Song[]
+}
+
+model Song {
+  id String              @id @default(uuid())
+  title      String
+  cover_image String
+  album String
+  spotify_id String
+  duration Int
+  commontrack_id Int
+  track_id Int
+  link_yt String
+  link_spotify String
+  spotify_preview String
+  views Int
+  artist_id String
+  artist Artist @relation(fields: [artist_id], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lyrics Lyrics[]
+}
+
+model Lyrics {
+  id String              @id @default(uuid())
+  lyrics String
+  timed_lyrics String
+  language String
+  song_id String
+  song Song @relation(fields: [song_id], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  revisions Revision[]
+}
+
+model Revision {
+  id String              @id @default(uuid())
+  timestamp String
+  old_lyrics String
+  new_lyrics String
+  lyrics_id String
+  lyrics Lyrics @relation(fields: [lyrics_id], references: [id])
+  user_id String
+  user User @relation(fields: [user_id], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id String              @id @default(uuid())
+  email String           @unique
+  name String
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  revision Revision[]
+}
